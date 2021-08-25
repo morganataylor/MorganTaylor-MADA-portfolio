@@ -1,16 +1,19 @@
 ---
-title: "My website and data analysis portfolio"
+title: "Morgan Taylor: Data Analysis Portfolio"
 output: 
   html_document:
+    theme: journal
     toc: FALSE
 ---
 
-# Hello
 
-### And hello again
+### University of Georgia
 
-Welcome to **my website** and _data analysis portfolio._ 
+<br>
+
+Welcome! This website was created as part of the work I'm completing during the Modern Applied Data Analysis (MADA) course at the University of Georgia (UGA).
 
 
 * Please use the `Menu Bar` above to look around.
-* Have fun!
+* Stay tuned for more projects and updates.
+
