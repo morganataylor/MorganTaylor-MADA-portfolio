@@ -11,7 +11,7 @@ Hello! My name is Morgan Taylor, and I'm a third year PhD student at the Univers
 
 <br>
 <center>
-![](C:/Users/IDM Admin/Desktop/MorganTaylor-MADA-portfolio/MT-headshot.jpg){width=50%}
+![](MT-headshot.jpg){width=50%}
 </center>
 
 <br>
@@ -41,7 +41,7 @@ I have previous experience in R and SAS, but I much prefer R overall. I'm curren
 
 <br>
 <center>
-![Callie](C:/Users/IDM Admin/Desktop/MorganTaylor-MADA-portfolio/Callie.jpg){width=25%}
+![Callie](Callie.jpg){width=25%}
 </center>
 <br>
 
@@ -49,5 +49,5 @@ I have previous experience in R and SAS, but I much prefer R overall. I'm curren
 When you think about holidays, what do you think would cause people to seek care at an emergency room? I found this fascinating analysis of reasons people visit an emergency room on five US holidays. Which one surprises you the most?
 
 <center>
-![Holidays at the emergency room](C:/Users/IDM Admin/Desktop/MorganTaylor-MADA-portfolio/ER-holiday-visits.png){width=75%}
+![Holidays at the emergency room](ER-holiday-visits.png){width=75%}
 </center>

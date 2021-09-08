@@ -11,12 +11,12 @@
 
 
 
-<title>R coding Exercise</title>
+<title>R Coding Exercise (Module 3)</title>
 
 <script src="site_libs/header-attrs-2.10/header-attrs.js"></script>
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<link href="site_libs/bootstrap-3.3.5/css/journal.min.css" rel="stylesheet" />
 <script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
@@ -363,13 +363,14 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">R coding Exercise</h1>
+<h1 class="title toc-ignore">R Coding Exercise (Module 3)</h1>
 
 </div>
 
 
-<div id="coding-exercise-for-module-3-r-coding-basics" class="section level1">
-<h1>Coding Exercise for Module 3: R Coding Basics</h1>
+<p><br></p>
+<p>The first portion of this exercises utilizes the Gapminder dataset to examine the relationship between infant mortality and life expectancy as well as population size and life expectancy in African countries.</p>
+<p><br></p>
 <div id="libraries-and-other-formatting" class="section level2">
 <h2>Libraries and other formatting</h2>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">#to use the gapminder data</span></span>
@@ -390,6 +391,7 @@ $(document).ready(function () {
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co">#to center all plot titles</span></span>
 <span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="fu">theme_update</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>))</span></code></pre></div>
+<p><br></p>
 </div>
 <div id="checking-data" class="section level2">
 <h2>Checking data</h2>
@@ -437,6 +439,7 @@ $(document).ready(function () {
 <div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co">#determine object type of gapminder data</span></span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(gapminder)</span></code></pre></div>
 <pre><code>## [1] &quot;data.frame&quot;</code></pre>
+<p><br></p>
 </div>
 <div id="processing-data" class="section level2">
 <h2>Processing data</h2>
@@ -519,6 +522,7 @@ $(document).ready(function () {
 ##  3rd Qu.: 13888152   3rd Qu.:60.10  
 ##  Max.   :182201962   Max.   :77.60  
 ##  NA&#39;s   :51</code></pre>
+<p><br></p>
 </div>
 <div id="plotting" class="section level2">
 <h2>Plotting</h2>
@@ -536,9 +540,10 @@ $(document).ready(function () {
 <span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_size_manual</span>(<span class="at">values =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
 <span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">trans =</span> <span class="st">&#39;log2&#39;</span>) <span class="sc">+</span></span>
 <span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">&quot;Life expectancy as a function of population&quot;</span>) <span class="sc">+</span></span>
-<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">&quot;Population&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Life Expectancy&quot;</span>)</span></code></pre></div>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">&quot;log(Population)&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Life Expectancy&quot;</span>)</span></code></pre></div>
 <pre><code>## Warning: Removed 51 rows containing missing values (geom_point).</code></pre>
 <p><img src="rcoding_files/figure-html/unnamed-chunk-4-2.png" width="672" /></p>
+<p><br></p>
 </div>
 <div id="more-data-processing" class="section level2">
 <h2>More data processing</h2>
@@ -591,10 +596,11 @@ $(document).ready(function () {
 ##  Southern Africa          : 5  
 ##  Australia and New Zealand: 0  
 ##  (Other)                  : 0</code></pre>
+<p><br></p>
 </div>
 <div id="more-plotting" class="section level2">
 <h2>More plotting</h2>
-<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="do">### new subset of Africa data in 2000 that only includes infant mortality and life expectancy</span></span>
+<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co">#new subset of Africa data in 2000 that only includes infant mortality and life expectancy</span></span>
 <span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>africa_im_le_2000 <span class="ot">&lt;-</span> africadata_2000 <span class="sc">%&gt;%</span></span>
 <span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(infant_mortality, life_expectancy)</span>
 <span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a></span>
@@ -643,12 +649,63 @@ $(document).ready(function () {
 <span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_size_manual</span>(<span class="at">values =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
 <span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">trans =</span> <span class="st">&#39;log2&#39;</span>) <span class="sc">+</span></span>
 <span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">&quot;Life expectancy as a function of population&quot;</span>) <span class="sc">+</span></span>
-<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">&quot;Population&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Life Expectancy&quot;</span>)</span></code></pre></div>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">&quot;log(Population)&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Life Expectancy&quot;</span>)</span></code></pre></div>
 <p><img src="rcoding_files/figure-html/unnamed-chunk-6-2.png" width="672" /></p>
+<p><br></p>
 </div>
 <div id="a-simple-fit" class="section level2">
 <h2>A simple fit</h2>
+<div class="sourceCode" id="cb44"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="co">#linear model with life expectancy as outcome, infant mortality as predictor (using 2000 data)</span></span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>fit1 <span class="ot">&lt;-</span> <span class="fu">lm</span>(life_expectancy <span class="sc">~</span> infant_mortality, <span class="at">data =</span> africa_im_le_2000)</span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a><span class="co">#summary of fit 1</span></span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit1)</span></code></pre></div>
+<pre><code>## 
+## Call:
+## lm(formula = life_expectancy ~ infant_mortality, data = africa_im_le_2000)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -22.6651  -3.7087   0.9914   4.0408   8.6817 
+## 
+## Coefficients:
+##                  Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)      71.29331    2.42611  29.386  &lt; 2e-16 ***
+## infant_mortality -0.18916    0.02869  -6.594 2.83e-08 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 6.221 on 49 degrees of freedom
+## Multiple R-squared:  0.4701, Adjusted R-squared:  0.4593 
+## F-statistic: 43.48 on 1 and 49 DF,  p-value: 2.826e-08</code></pre>
+<div class="sourceCode" id="cb46"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="co">#linear model with life expectancy as outcome, population size as predictor (using 2000 data)</span></span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>fit2 <span class="ot">&lt;-</span> <span class="fu">lm</span>(life_expectancy <span class="sc">~</span> population, <span class="at">data =</span> africa_pop_le_2000)</span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a><span class="co">#summary of fit 2</span></span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit2)</span></code></pre></div>
+<pre><code>## 
+## Call:
+## lm(formula = life_expectancy ~ population, data = africa_pop_le_2000)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -18.429  -4.602  -2.568   3.800  18.802 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 5.593e+01  1.468e+00  38.097   &lt;2e-16 ***
+## population  2.756e-08  5.459e-08   0.505    0.616    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 8.524 on 49 degrees of freedom
+## Multiple R-squared:  0.005176,   Adjusted R-squared:  -0.01513 
+## F-statistic: 0.2549 on 1 and 49 DF,  p-value: 0.6159</code></pre>
+<p><br></p>
 </div>
+<div id="conclusion" class="section level2">
+<h2>Conclusion</h2>
+<p>In examining the two linear models, we do not have enough evidence to determine that population size is a significant predictor of life expectancy in African countries in the year 2000. However, there is sufficient evidence to suggest a negative correlation between infant mortality rate and life expectancy in African countries in the year 2000. For each additional infant death per 1,000, the life expectancy decreases by 0.18916 years (SE = 5.459e-08, t = 0.505, p &lt; 0.001).</p>
 </div>
 
 
