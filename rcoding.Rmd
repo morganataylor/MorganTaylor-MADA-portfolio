@@ -5,6 +5,146 @@ output:
     toc: FALSE
 ---
 
-This will contain the future R coding exercise.
+# Coding Exercise for Module 3: R Coding Basics
 
+## Libraries and other formatting
+```{r}
+#to use the gapminder data
+library("dslabs") 
 
+#to select certain columns of data
+library("dplyr") 
+
+#to plot data
+library(ggplot2)
+
+#to center all plot titles
+theme_update(plot.title = element_text(hjust = 0.5))
+```
+
+## Checking data
+```{r}
+#look at help file for gapminder data
+help(gapminder)
+
+#overview of data structure
+str(gapminder)
+
+#summary of data
+summary(gapminder)
+
+#determine object type of gapminder data
+class(gapminder)
+```
+
+## Processing data
+```{r}
+### Goal: create new object that selects only African countries
+africadata <- gapminder[gapminder$continent == "Africa", ]
+
+#overview of Africa data structure
+str(africadata)
+
+#summary of Africa data
+summary(africadata)
+
+### new subset of Africa data that only includes infant mortality and life expectancy
+africa_im_le <- africadata %>%
+  select(infant_mortality, life_expectancy)
+
+#overview of infant mortality and life expectancy data
+str(africa_im_le)
+
+#summary of infant mortality and life expectancy data
+summary(africa_im_le)
+
+### new subset of Africa data that only includes population and life expectancy
+africa_pop_le <- africadata %>%
+  select(population, life_expectancy)
+
+#overview of population and life expectancy data
+str(africa_pop_le)
+
+#summary of population and life expectancy data
+summary(africa_pop_le)
+```
+
+## Plotting
+```{r}
+#plot life expectancy as a function of infant mortality 
+ggplot(data = africa_im_le, aes(x = infant_mortality, y = life_expectancy)) +
+  geom_point() +
+  scale_size_manual(values = 2) +
+  ggtitle("Life expectancy as a function of infant mortality") +
+  labs(x = "Infant Mortality", y = "Life Expectancy")
+
+#plot life expectancy as a function of population size
+ggplot(data = africa_pop_le, aes(x = population, y = life_expectancy)) +
+  geom_point() +
+  scale_size_manual(values = 2) +
+  scale_x_continuous(trans = 'log2') +
+  ggtitle("Life expectancy as a function of population") +
+  labs(x = "Population", y = "Life Expectancy")
+```
+
+## More data processing
+```{r}
+### Identify missing infant mortality data
+#make a list of missing infant mortality data
+africadata_missing <- africadata[is.na(africadata$infant_mortality), ]
+
+#identify years of missing infant mortality data
+unique(africadata_missing$year)
+
+### Create subset of Africa data only in year 2000
+africadata_2000 <- africadata[africadata$year == "2000", ]
+
+#overview of Africa data in 2000
+str(africadata_2000)
+
+#summary of Africa data in 2000
+summary(africadata_2000)
+```
+
+## More plotting
+```{r}
+### new subset of Africa data in 2000 that only includes infant mortality and life expectancy
+africa_im_le_2000 <- africadata_2000 %>%
+  select(infant_mortality, life_expectancy)
+
+#overview of infant mortality and life expectancy data in 2000
+str(africa_im_le_2000)
+
+#summary of infant mortality and life expectancy data in 2000
+summary(africa_im_le_2000)
+
+#plot of life expectancy as a function of infant mortality in 2000
+ggplot(data = africa_im_le_2000, aes(x = infant_mortality, y = life_expectancy)) +
+  geom_point() +
+  scale_size_manual(values = 2) +
+  ggtitle("Life expectancy as a function of infant mortality") +
+  labs(x = "Infant Mortality", y = "Life Expectancy")
+
+### new subset of Africa data in 2000 that only includes population and life expectancy
+africa_pop_le_2000 <- africadata_2000 %>%
+  select(population, life_expectancy)
+
+#overview of population and life expectancy data in 2000
+str(africa_pop_le_2000)
+
+#summary of population and life expectancy data in 2000
+summary(africa_pop_le_2000)
+
+#plot of life expectancy as a function of population in 2000
+ggplot(data = africa_pop_le_2000, aes(x = population, y = life_expectancy)) +
+  geom_point() +
+  scale_size_manual(values = 2) +
+  scale_x_continuous(trans = 'log2') +
+  ggtitle("Life expectancy as a function of population") +
+  labs(x = "Population", y = "Life Expectancy")
+```
+
+## A simple fit
+```{r}
+
+```
