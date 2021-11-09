@@ -11,12 +11,12 @@
 
 
 
-<title>About me</title>
+<title>About Me</title>
 
-<script src="site_libs/header-attrs-2.10/header-attrs.js"></script>
-<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<script src="site_libs/header-attrs-2.11/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<link href="site_libs/bootstrap-3.3.5/css/journal.min.css" rel="stylesheet" />
+<link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
 <script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
@@ -227,7 +227,7 @@ $(document).ready(function () {
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="index.html">My Data Analysis Portfolio</a>
+      <a class="navbar-brand" href="index.html">Home</a>
     </div>
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
@@ -236,7 +236,7 @@ $(document).ready(function () {
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    Projects
+    MADA Exercises
      
     <span class="caret"></span>
   </a>
@@ -248,14 +248,40 @@ $(document).ready(function () {
       <a href="./visualization.html">Visualization</a>
     </li>
     <li>
-      <a href="./tidytuesday.html">Tidy Tuesday</a>
+      <a href="./tidytuesday_exercise.html">Tidy Tuesday Exercise #1</a>
+    </li>
+    <li>
+      <a href="./tidytuesday_exercise2.html">Tidy Tuesday Exercise #2</a>
+    </li>
+    <li class="dropdown-submenu">
+      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Influenza Analysis Project</a>
+      <ul class="dropdown-menu" role="menu">
+        <li>
+          <a href="./flu_analysis_proj.html">Introduction</a>
+        </li>
+        <li>
+          <a href="./processing.html">Data Processing</a>
+        </li>
+        <li>
+          <a href="./exploratory_analysis.html">Exploratory Data Analysis</a>
+        </li>
+        <li>
+          <a href="./tidymodels_1.html">TidyModels Analysis Part 1</a>
+        </li>
+        <li>
+          <a href="./tidymodels_2.html">TidyModels Analysis Part 2</a>
+        </li>
+        <li>
+          <a href="./ml_analysis.html">Machine Learning Analysis</a>
+        </li>
+      </ul>
     </li>
   </ul>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
-  <a href="URL-TO-THIS-REPOSITORY-HERE">
+  <a href="https://github.com/morganataylor/MorganTaylor-MADA-portfolio">
     <span class="fa fa-github fa-lg"></span>
      
   </a>
@@ -269,32 +295,32 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">About me</h1>
+<h1 class="title toc-ignore">About Me</h1>
 
 </div>
 
 
-<p><br> Hello! My name is Morgan Taylor, and I’m a third year PhD student at the University of Georgia in the Department of Epidemiology &amp; Biostatistics. I also reserach and teach with the Institute for Disaster Management.</p>
+<p><br> Hello! My name is Morgan Taylor, and I’m a third year PhD student at the University of Georgia in the Department of Epidemiology &amp; Biostatistics. The preponderance of my research and teaching occurs with the Institute for Disaster Management.</p>
 <br>
 <center>
-<img src="MT-headshot.jpg" style="width:50.0%" />
+<img src="files/MT-headshot.jpg" title="fig:" style="width:50.0%" alt="MT" />
 </center>
-<p><br></p>
+<hr />
 <div id="background-and-training" class="section level3">
 <h3>Background and Training</h3>
 <p>I graduated from Emory University in 2016 with a B.S. in Chemistry. While I was at Emory, I worked for Emory EMS, a volunteer organization that led 911 response on campus and in the surrounding areas 24/7. I had the opportunity to serve as Chief of EMS my senior year, and I fell in love with the field of emergency management. I knew I wanted to learn more, so I came to the University of Georgia to complete my MPH in Disaster Management. While I enjoyed the practical lessons I learned, I had more questions each day I spent in the program. So, after graduating with my MPH in 2019, I decided to pursue an interdisciplinary PhD that would allow me to blend my varied academic interests.</p>
-<p><br></p>
+<hr />
 </div>
 <div id="research-interests" class="section level3">
 <h3>Research Interests</h3>
 <p>Broadly, I am interested in applying the methodology that fields of epidemiology and biostatistics use to the field of disaster management. Currently emergency managers tend to be reactive to disasters rather than trying to understand what could (or is most likely to) happen. My hope is that my blending the disciplines, I can begin to illustrate the importance of predicting outcomes in disasters.</p>
 <p>My dissertation specifically focuses on creating a realistic model for a nuclear disaster. With the only true nuclear detonation occurring over 70 years ago, many local emergency managers are unaware of how to even begin planning for such a disaster. I’m interested in understanding how to create models that can inform preparedness measures and help local agencies prepare for the volume of patients that will occur in nuclear incidents.</p>
-<p><br></p>
+<hr />
 </div>
 <div id="previous-experience" class="section level3">
 <h3>Previous Experience</h3>
 <p>I have previous experience in R and SAS, but I much prefer R overall. I’m currently working on a side project using R and statistical analysis to examine the importance (or lack) of color code pages in hospitals. I’m looking forward to becoming more comfortable with workflows and sophisticated analysis in this course. I hope to learn more about machine learning in R, if the course allows.</p>
-<p><br></p>
+<hr />
 </div>
 <div id="fun-facts" class="section level3">
 <h3>Fun Facts</h3>
@@ -302,19 +328,19 @@ $(document).ready(function () {
 <li>I once spent a week camping north of the Arctic Circle. It’s not as cold as one might think - especially when there are wildfires.</li>
 <li>I’m extremely clumsy. I managed to break over 10 bones in the span of two years.</li>
 <li>I’m currently teaching myself Swedish, because why not?</li>
-<li>I am borderline-obnoxiously proud of my dog, Callie, who is a 4-year-old miniature Australian Shepherd. Say hi, Callie!</li>
+<li>I have an adorable, 4-year-old miniature Australian Shepherd. Say hi, Callie!</li>
 </ul>
 <br>
 <center>
-<img src="Callie.jpg" title="fig:" style="width:25.0%" alt="Callie" />
+<img src="files/Callie.jpg" title="fig:" style="width:25.0%" alt="Callie" />
 </center>
-<p><br></p>
+<hr />
 </div>
 <div id="fun-and-interesting-data-analysis" class="section level3">
 <h3>Fun and Interesting Data Analysis</h3>
 <p>When you think about holidays, what do you think would cause people to seek care at an emergency room? I found this fascinating analysis of reasons people visit an emergency room on five US holidays. Which one surprises you the most?</p>
 <center>
-<img src="ER-holiday-visits.png" title="fig:" style="width:75.0%" alt="Holidays at the emergency room" />
+<img src="files/ER-holiday-visits.png" title="fig:" style="width:75.0%" alt="Holidays at the emergency room" />
 </center>
 </div>
 

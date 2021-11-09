@@ -1,0 +1,15 @@
+---
+title: "Tidy Tuesday Exercise (Module 13)"
+output: 
+  html_document:
+    theme: flatly
+    toc: FALSE
+---
+
+<br>
+
+We are participating in week 47 of TidyTuesday! The following analysis uses the TidyTuesday template called by "tidytuesdayR::use_tidytemplate()".
+
+To be completed week of 11/16/21
+
+---

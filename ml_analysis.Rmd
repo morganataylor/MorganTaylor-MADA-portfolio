@@ -1,0 +1,767 @@
+---
+title: "Influenza Project - Machine Learning Models"
+output: 
+  html_document:
+    theme: flatly
+    toc: FALSE
+---
+
+<br>
+
+## Introduction
+This exercise fits three machine learning models to the influenza data: decision tree, LASSO, and random forest. It compares the three chosen models, and then finally fits the "best" model to the test data.
+
+<br>
+
+The raw data for this exercise comes from the following citation:
+McKay, Brian et al. (2020), Virulence-mediated infectiousness and activity trade-offs and their impact on transmission potential of patients infected with influenza, Dryad, Dataset, https://doi.org/10.5061/dryad.51c59zw4v.
+
+The processed data was produced on the `Data Processing` tab.
+
+<br>
+
+Within this analysis, the following definitions exist:
+
+* Main predictor of interest = Runny Nose
+* Continuous outcome of interest = Body Temperature
+
+<br>
+
+Each machine learning model will be follow this process:
+
+1. Model Specification
+2. Workflow Definition
+3. Tuning Grid Specification
+4. Tuning Using Cross-Validation and the `tune_grid()` function
+5. Identify Best Model
+6. Model Evaluation
+
+---
+
+## Required Packages
+The following R packages are required for this exercise:
+
+* here: for data loading/saving
+* tidyverse: for data management
+* tidymodels: for data modeling
+* skimr: for variable summaries
+* broom.mixed: for converting bayesian models to tidy tibbles
+* rpart.plot: for visualizing a decision tree
+* vip: for variable importance plots
+* glmnet: for lasso models
+* doParallel: for parallel backend for tuning processes
+* ranger: for random forest models
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#libraries required
+library(here) #for data loading/saving
+library(tidyverse) #for data management
+library(tidymodels) #for data modeling
+library(skimr) #for variable summaries
+library(broom.mixed) #for converting bayesian models to tidy tibbles
+library(rpart.plot) #for visualizing a decision tree
+library(vip) #for variable importance plots
+library(glmnet) #for lasso methods
+library(doParallel) #for parallel backend tuning
+library(ranger) #for random forest models
+
+#fix doParallel error
+unregister_dopar <- function() {
+     env <- foreach:::.foreachGlobals
+     rm(list=ls(name=env), pos=env)
+}
+```
+
+<br>
+
+## Load Data
+Load the processed data from the `processed_data` folder in the project file.
+```{r load data}
+#path to data
+#note the use of the here() package and not absolute paths
+data_location <- here::here("data","flu","ML_data.rds")
+
+#load data. 
+ML_processed <- readRDS(data_location)
+
+#summary of data using skimr package
+skimr::skim(ML_processed)
+```
+
+<br>
+
+---
+
+## Data Setup
+Following the parameters determined in the assignment guidelines:
+
+* Set the random seed to `123`
+* Split the dataset into 70% training, 30% testing with `BodyTemp` as stratification
+* 5-fold cross validation, 5 times repeated, stratified on `BodyTemp` for the CV folds
+* Create a recipe for data and fitting that codes categorical variables as dummy variables
+```{r}
+#set random seed to 123
+set.seed(123)
+
+#split dataset into 70% training, 30% testing
+#use BodyTemp as stratification
+data_split <- rsample::initial_split(ML_processed, prop = 7/10,
+                                     strata = BodyTemp)
+
+#create dataframes for the two sets:
+train_data <- rsample::training(data_split)
+test_data <- rsample::testing(data_split)
+
+#training set proportions by BodyTemp
+train_data %>%
+  dplyr::count(BodyTemp) %>%
+  dplyr::mutate(prop = n / sum(n))
+
+#testing set proportions by BodyTemp
+test_data %>%
+  dplyr::count(BodyTemp) %>%
+  dplyr::mutate(prop = n / sum(n))
+
+#5-fold cross validation, 5 times repeated, stratified on `BodyTemp` for the CV folds
+folds <- rsample::vfold_cv(train_data,
+                           v = 5,
+                           repeats = 5,
+                           strata = BodyTemp)
+  
+#create recipe that codes categorical variables as dummy variables
+flu_rec <- recipes::recipe(BodyTemp ~ ., data = train_data) %>%
+           recipes::step_dummy(all_nominal_predictors())
+```
+
+---
+
+## Null model performance
+Determine the performance of a null model (i.e. one with no predictors). For a continuous outcome and RMSE as the metric, a null model is one that predicts the mean of the outcome. Compute the RMSE for both training and test data for such a model.
+```{r}
+#create null model
+null_mod <- parsnip::null_model() %>%
+            parsnip::set_engine("parsnip") %>%
+            parsnip::set_mode("regression")
+
+#add recipe and model into workflow
+null_wflow <- workflows::workflow() %>%
+              workflows::add_recipe(flu_rec) %>%
+              workflows::add_model(null_mod)
+
+#"fit" model to training data
+null_train <- null_wflow %>%
+                parsnip::fit(data = train_data)
+
+#summary of null model with training data to get mean (which in this case is the RMSE)
+null_train_sum <- broom.mixed::tidy(null_train)
+null_train_sum
+
+#"fit" model to test data
+null_test <- null_wflow %>%
+                parsnip::fit(data = test_data)
+
+#summary of null model with test data to get mean (which in this case is the RMSE)
+null_test_sum <- broom.mixed::tidy(null_test)
+null_test_sum
+
+#RMSE for training data
+null_RMSE_train <- tibble::tibble(
+                      rmse = rmse_vec(truth = train_data$BodyTemp,
+                                          estimate = rep(mean(train_data$BodyTemp), nrow(train_data))),
+                      SE = 0,
+                      model = "Null - Train")
+
+#RMSE for testing data
+null_RMSE_test <- tibble::tibble(
+                      rmse = rmse_vec(truth = test_data$BodyTemp,
+                                          estimate = rep(mean(test_data$BodyTemp), nrow(test_data))),
+                      SE = 0,
+                      model = "Null - Test")
+
+```
+
+---
+
+## Tree Model
+Most of the code for this section comes from the [TidyModels Tutorial for Tuning](https://www.tidymodels.org/start/tuning/).
+
+### 1. Model Specification
+```{r}
+#run parallels to determine number of cores
+cores <- parallel::detectCores() - 1
+cores
+
+cl <- makeCluster(cores)
+
+registerDoParallel(cl)
+
+#define the tree model
+tree_mod <-
+  parsnip::decision_tree(cost_complexity = tune(),
+                         tree_depth = tune(),
+                         min_n = tune()) %>%
+  parsnip::set_engine("rpart") %>%
+  parsnip::set_mode("regression")
+
+#use the recipe specified earlier (line 133)
+```
+
+<br>
+
+### 2. Workflow Definition
+```{r}
+#define workflow for tree
+tree_wflow <- workflows::workflow() %>%
+               workflows::add_model(tree_mod) %>%
+               workflows::add_recipe(flu_rec)
+```
+
+<br>
+
+### 3. Tuning Grid Specification
+```{r}
+#tuning grid specification
+tree_grid <- dials::grid_regular(cost_complexity(),
+                                 tree_depth(),
+                                 min_n(),
+                                 levels = 5)
+
+#tree depth
+tree_grid %>%
+  dplyr::count(tree_depth)
+```
+
+<br>
+
+### 4. Tuning Using Cross-Validation and the `tune_grid()` function
+```{r}
+#tune the model with previously specified cross-validation and RMSE as target metric
+tree_res <- tree_wflow %>%
+                tune::tune_grid(resamples = folds,
+                                grid = tree_grid,
+                                control = control_grid(verbose = TRUE),
+                                metrics = yardstick::metric_set(rmse))
+
+#collect metrics
+tree_res %>% workflowsets::collect_metrics()
+
+#default visualization
+tree_res %>% autoplot()
+
+#more detailed plot
+tree_res %>%
+  workflowsets::collect_metrics() %>%
+  dplyr::mutate(tree_depth = factor(tree_depth)) %>%
+  ggplot2::ggplot(aes(cost_complexity, mean, color = tree_depth)) +
+           geom_line(size = 1.5, alpha = 0.6) +
+           geom_point(size = 2) +
+           facet_wrap(~ .metric, scales = "free", nrow = 2) +
+           scale_x_log10(labels = scales::label_number()) +
+           scale_color_viridis_d(option = "plasma", begin = 0.9, end = 0)
+```
+
+<br>
+
+### 5. Identify Best Model
+```{r}
+#select the tree model with the lowest rmse
+tree_lowest_rmse <- tree_res %>%
+                        tune::select_best("rmse")
+
+#finalize the workflow by using the selected lasso model
+best_tree_wflow <- tree_wflow %>%
+                      tune::finalize_workflow(tree_lowest_rmse)
+best_tree_wflow
+
+#one last fit on the training data
+best_tree_fit <- best_tree_wflow %>%
+                    parsnip::fit(data = train_data)
+```
+
+<br>
+
+### 6. Model evaluation
+```{r}
+#plot the tree
+rpart.plot::rpart.plot(x = workflowsets::extract_fit_parsnip(best_tree_fit)$fit,
+                       roundint = F,
+                       type = 5,
+                       digits = 5,
+                       main = "Selected Tree Model")
+
+#find predictions and intervals
+tree_resid <- best_tree_fit %>%
+                  broom.mixed::augment(new_data = train_data) %>%
+                  dplyr::select(.pred, BodyTemp) %>%
+                  dplyr::mutate(.resid = .pred - BodyTemp)
+
+#plot model predictions from tuned model versus actual outcomes
+#geom_abline draws a 45 degree line, along which the results should fall
+ggplot2::ggplot(tree_resid, aes(x = .pred, y = BodyTemp)) +
+  geom_abline(slope = 1, intercept = 0, color = "red", lty = 2) + 
+  geom_point() +
+  xlim(97, 104) +
+  ylim (97, 104) +
+  labs(title = "Decision Tree Fit: Predicted vs. Actual Body Temperature",
+        x = "Predicted Body Temperature (F)",
+        y = "Actual Body Temperature (F)")
+
+#plot model with residuals
+#the geom_hline plots a straight horizontal line along which the results should fall
+ggplot2::ggplot(tree_resid, aes(x = as.numeric(row.names(tree_resid)), y = .resid))+
+  geom_hline(yintercept = 0, color = "red", lty = 2) +
+  geom_point() +
+  labs(title = "Decision Tree Fit: Residuals",
+        x = "Observation Number",
+        y = "Residual")
+
+#plot model fit vs residuals
+#the geom_hline plots a straight horizontal line along which the results fall
+ggplot2::ggplot(tree_resid, aes(x = .pred, y = .resid))+
+  geom_hline(yintercept = 0, color = "red", lty = 2) +
+  geom_point() +
+  xlim(97, 104) +
+  labs(title = "Decision Tree Fit: Residuals vs Fitted Body Temperature",
+        x = "Fitted Body Temperature (F)",
+        y = "Residual")
+
+#print model performance
+#print 10 best performing hyperparameter sets
+tree_res %>%
+  tune::show_best(n = 10) %>%
+  dplyr::select(rmse = mean, std_err, cost_complexity) %>%
+  dplyr::mutate(rmse = round(rmse, 3),
+                std_err = round(std_err, 4),
+                cost_complexity = scales::scientific(cost_complexity))
+
+#print the best model performance
+tree_performance <- tree_res %>% tune::show_best(n = 1)
+print(tree_performance)
+
+#compare model performance to null model
+tree_RMSE <- tree_res %>%
+                tune::show_best(n = 1) %>%
+                dplyr::transmute(
+                  rmse = round(mean, 3),
+                  SE = round(std_err, 4),
+                  model = "Tree") %>%
+               dplyr::bind_rows(null_RMSE_train)
+tree_RMSE
+```
+
+The identified best performing tree model only predicts two different values, which isn't a great model. In comparing the RMSE to the null model, it is a marginal improvement at best. This is not a good model for this data -- time to try something new!
+
+<br>
+
+---
+
+<br>
+
+## LASSO Model
+Most of the code for this section comes from the [TidyModels Tutorial Case Study](https://www.tidymodels.org/start/case-study/).
+
+<br>
+
+### 1. Model Specification
+```{r}
+#define the lasso model
+#mixture = 1 identifies the model to be a LASSO model
+lasso_mod <-
+  parsnip::linear_reg(mode = "regression",
+                      penalty = tune(), 
+                      mixture = 1) %>%
+  parsnip::set_engine("glmnet")
+
+#use the recipe specified earlier (line 133)
+```
+
+<br>
+
+### 2. Workflow Definition
+```{r}
+#define workflow for lasso regression
+lasso_wflow <- workflows::workflow() %>%
+               workflows::add_model(lasso_mod) %>%
+               workflows::add_recipe(flu_rec)
+```
+
+<br>
+
+### 3. Tuning Grid Specification
+```{r}
+#tuning grid specification
+lasso_grid <- tibble(penalty = 10^seq(-3, 0, length.out = 30))
+
+#5 lowest penalty values
+lasso_grid %>%
+  dplyr::top_n(-5)
+
+#5 highest penalty values
+lasso_grid %>%
+  dplyr::top_n(5)
+```
+
+<br>
+
+### 4. Tuning Using Cross-Validation and the `tune_grid()` function
+```{r}
+#tune the model with previously specified cross-validation and RMSE as target metric
+lasso_res <- lasso_wflow %>%
+                tune::tune_grid(resamples = folds,
+                                grid = lasso_grid,
+                                control = control_grid(verbose = TRUE, 
+                                                       save_pred = TRUE),
+                                metrics = metric_set(rmse))
+
+#look at 15 models with lowest RMSEs
+top_lasso_models <- lasso_res %>%
+                      tune::show_best("rmse", n = 15) %>%
+                      dplyr::arrange(penalty)
+top_lasso_models
+
+#default visualization
+lasso_res %>% autoplot()
+
+#create a graph to see when there is a significant change in the penalty
+#this is the same as above, just a little more detail
+lasso_res %>%
+  workflowsets::collect_metrics() %>%
+  ggplot2::ggplot(aes(penalty, mean, color = .metric)) +
+  ggplot2::geom_errorbar(aes(ymin = mean - std_err,
+                             ymax = mean + std_err),
+                         alpha = 0.5) +
+  ggplot2::geom_line(size = 1.5) +
+  ggplot2::scale_x_log10()
+```
+
+<br>
+
+### 5. Identify Best Model
+```{r}
+#select the lasso model with the lowest rmse
+lasso_lowest_rmse <- lasso_res %>%
+                        tune::select_best("rmse")
+
+#finalize the workflow by using the selected lasso model
+best_lasso_wflow <- lasso_wflow %>%
+                      tune::finalize_workflow(lasso_lowest_rmse)
+best_lasso_wflow
+
+#one last fit on the training data
+best_lasso_fit <- best_lasso_wflow %>%
+                    parsnip::fit(data = train_data)
+
+#create a table of model fit that includes the predictors in the model
+#i.e. include all non-zero estimates
+lasso_tibble <- best_lasso_fit %>%
+                    workflowsets::extract_fit_parsnip() %>%
+                    broom::tidy() %>%
+                    dplyr::filter(estimate != 0) %>%
+                    dplyr::mutate_if(is.numeric, round, 4)
+lasso_tibble
+```
+
+<br>
+
+### 6. Model evaluation
+```{r}
+#extract model from final fit
+x_lasso <- best_lasso_fit$fit$fit$fit
+
+#plot how number of predictors included in LASSO model changes with the tuning parameter
+plot(x_lasso, "lambda")
+#the larger the regularization penalty, the fewer the predictors in the model
+
+#find predictions and intervals
+lasso_resid <- best_lasso_fit %>%
+                  broom.mixed::augment(new_data = train_data) %>%
+                  dplyr::select(.pred, BodyTemp) %>%
+                  dplyr::mutate(.resid = .pred - BodyTemp)
+
+#plot model predictions from tuned model versus actual outcomes
+#geom_abline plots a 45 degree line along which the results should fall
+ggplot2::ggplot(lasso_resid, aes(x = .pred, y = BodyTemp)) +
+  geom_abline(slope = 1, intercept = 0, color = "red", lty = 2) +
+  geom_point() +
+  xlim(97, 104) + 
+  ylim(97, 104) +
+  labs(title = "LASSO fit: Predicted vs. Actual Body Temperature",
+        x = "Actual Body Temperature (F)",
+        y = "Predicted Body Temperature (F)")
+
+#plot model with residuals
+#the geom_hline plots a straight horizontal line along which the results should fall
+ggplot2::ggplot(lasso_resid, aes(x = as.numeric(row.names(lasso_resid)), y = .resid))+
+  geom_hline(yintercept = 0, color = "red", lty = 2) +
+  geom_point() +
+  labs(title = "LASSO Fit: Residuals",
+        x = "Observation Number",
+        y = "Residual")
+
+#plot model fit vs residuals
+#the geom_hline plots a straight horizontal line along which the results fall
+ggplot2::ggplot(lasso_resid, aes(x = .pred, y = .resid))+
+  geom_hline(yintercept = 0, color = "red", lty = 2) +
+  geom_point() +
+  xlim(97, 104) +
+  labs(title = "LASSO Fit: Residuals vs Fitted Body Temperature",
+        x = "Fitted Body Temperature (F)",
+        y = "Residual")
+
+#print the 10 best performing hyperparameter sets
+lasso_res %>%
+  tune::show_best(n = 10) %>%
+  dplyr::select(rmse = mean, std_err, penalty) %>%
+  dplyr::mutate(rmse = round(rmse, 3),
+                std_err = round(std_err, 4),
+                `log penalty` = round(log(penalty), 3),
+                .keep = "unused")
+
+#print best model performance
+lasso_performance <- lasso_res %>% tune::show_best(n = 1)
+lasso_performance
+
+#compare model performance to null model and tree model
+lasso_RMSE <- lasso_res %>%
+                tune::show_best(n = 1) %>%
+                dplyr::transmute(
+                  rmse = round(mean, 3),
+                  SE = round(std_err, 4),
+                  model = "LASSO") %>%
+               dplyr::bind_rows(tree_RMSE)
+lasso_RMSE
+```
+
+In examining the results of the model, there is an improvement of the target metric (RMSE) under the LASSO model. However, the residual plots and observed vs fitted plots suggest the fit still isn't ideal. Time to try one last model!
+
+<br>
+
+---
+
+<br>
+
+## Random Forest Model
+Most of the code for this section comes from the [TidyModels Tutorial Case Study](https://www.tidymodels.org/start/case-study/).
+
+<br>
+
+### 1. Model Specification
+```{r}
+#run parallels to determine number of cores
+cores <- parallel::detectCores() - 1
+cores
+
+cl <- makeCluster(cores)
+
+registerDoParallel(cl)
+
+#define the RF model
+RF_mod <-
+  parsnip::rand_forest(mtry = tune(),
+                       min_n = tune(),
+                       trees = tune()) %>%
+  parsnip::set_engine("ranger",
+                      importance = "permutation") %>%
+  parsnip::set_mode("regression")
+
+#use the recipe specified earlier (line 133)
+
+#check to make sure identified parameters will be tuned
+RF_mod %>% tune::parameters()
+```
+
+<br>
+
+### 2. Workflow Definition
+```{r}
+#define workflow for RF regression
+RF_wflow <- workflows::workflow() %>%
+               workflows::add_model(RF_mod) %>%
+               workflows::add_recipe(flu_rec)
+```
+
+<br>
+
+### 3. Tuning Grid Specification
+```{r}
+#tuning grid specification
+RF_grid <- expand.grid(mtry = c(3, 4, 5, 6),
+                       min_n = c(40, 50, 60),
+                       trees = c(500,1000))
+```
+
+<br>
+
+### 4. Tuning Using Cross-Validation and the `tune_grid()` function
+```{r}
+#tune the model with previously specified cross-validation and RMSE as target metric
+RF_res <- RF_wflow %>%
+              tune::tune_grid(resamples = folds,
+                              grid = RF_grid,
+                              control = control_grid(verbose = TRUE, save_pred = TRUE),
+                              metrics = metric_set(rmse))
+
+#look at top 5 RF models
+top_RF_models <- RF_res %>%
+                    tune::show_best("rmse", n = 5)
+top_RF_models
+
+#default visualization
+RF_res %>% autoplot()
+#in future analyses, might be worth more tuning with a higher minimum node size
+```
+
+<br>
+
+### 5. Identify Best Model
+```{r}
+#select the RF model with the lowest rmse
+RF_lowest_rmse <- RF_res %>%
+                      tune::select_best("rmse")
+
+#finalize the workflow by using the selected RF model
+best_RF_wflow <- RF_wflow %>%
+                      tune::finalize_workflow(RF_lowest_rmse)
+best_RF_wflow
+
+#one last fit on the training data
+best_RF_fit <- best_RF_wflow %>%
+                    parsnip::fit(data = train_data)
+```
+
+<br>
+
+### 6. Model evaluation
+```{r}
+#extract model from final fit
+x_RF <- best_RF_fit$fit$fit$fit
+
+#plot most important predictors in the model
+vip::vip(x_RF, num_features = 20)
+#makes sense subjective fever is the most important variable in predicting actual fever
+
+#find predictions and intervals
+RF_resid <- best_RF_fit %>%
+                broom.mixed::augment(new_data = train_data) %>%
+                dplyr::select(.pred, BodyTemp) %>%
+                dplyr::mutate(.resid = .pred - BodyTemp)
+
+#plot model predictions from tuned model versus actual outcomes
+#geom_abline is a 45 degree line, along which the results should fall
+ggplot2::ggplot(RF_resid, aes(x = .pred, y = BodyTemp)) +
+  geom_abline(slope = 1, intercept = 0, color = "red", lty = 2) +
+  geom_point() +
+  xlim(97, 104) +
+  ylim(97, 104) +
+  labs(title = "RF Fit: Actual vs. Predicted Body Temperature",
+        x = "Predicted Body Temperature (F)",
+        y = "Actual Body Temperature (F)")
+
+#plot model with residuals
+#the geom_hline plots a straight horizontal line along which the results should fall
+ggplot2::ggplot(RF_resid, aes(x = as.numeric(row.names(RF_resid)), y = .resid))+
+  geom_hline(yintercept = 0, color = "red", lty = 2) +
+  geom_point() +
+  labs(title = "RF Fit: Residuals",
+        x = "Observation Number",
+        y = "Residual")
+
+#plot model fit vs residuals
+#the geom_hline plots a straight horizontal line along which the results fall
+ggplot2::ggplot(RF_resid, aes(x = .pred, y = .resid))+
+  geom_hline(yintercept = 0, color = "red", lty = 2) +
+  geom_point() +
+  xlim(97, 104) +
+  labs(title = "LASSO Fit: Residuals vs Fitted Body Temperature",
+        x = "Fitted Body Temperature (F)",
+        y = "Residual")
+
+#print the 10 best performing hyperparameter sets
+RF_res %>%
+  tune::show_best(n = 10) %>%
+  dplyr::select(rmse = mean, std_err) %>%
+  dplyr::mutate(rmse = round(rmse, 3),
+                std_err = round(std_err, 4),
+                .keep = "unused")
+
+#print the best model
+RF_performance <- RF_res %>% tune::show_best(n = 1)
+RF_performance
+
+#compare model performance to null model (and other models)
+RF_RMSE <- RF_res %>%
+              tune::show_best(n = 1) %>%
+              dplyr::transmute(
+                rmse = round(mean, 3),
+                SE = round(std_err, 4),
+                model = "RF") %>%
+             dplyr::bind_rows(lasso_RMSE)
+RF_RMSE
+```
+
+In examining the results of the RF model within the context of RMSE, it does not perform better than the LASSO model. It is slightly better than the decision tree and null model.
+
+---
+
+## Model Selection and Evaluation
+Based on the RMSE output above, the LASSO model has the lowest RMSE and therefore is the most appropriate model in this case. The RF and Tree models are virtually identical in their performance, but all three models are an improvement over the null model. It is worth noting that none of these models actually fit the data well - suggesting the predictor variables included in this dataset aren't all that useful in predicting the desired outcome (e.g. body temperature in suspected flu patients).
+```{r}
+#fit lasso model to training set but evaluate on the test data
+lasso_fit_test <- best_lasso_wflow %>%
+                    tune::last_fit(split = data_split)
+
+#compare test performance against training performance
+lasso_rmse_test <- collect_metrics(lasso_fit_test) %>%
+  dplyr::select(rmse = .estimate) %>%
+  dplyr::mutate(data = "test")
+
+lasso_comp <- lasso_RMSE %>%
+                  dplyr::filter(model == "LASSO") %>%
+                  dplyr::transmute(rmse, data = "train") %>%
+                  dplyr::bind_rows(lasso_rmse_test) %>%
+                  dplyr::slice(-3) #don't know why the third row shows up
+lasso_comp
+#RMSEs are essentially identical --> what we want (suggests we might've avoided overfitting)
+
+#find predictions and intervals
+lasso_resid_fit <- lasso_fit_test %>%
+                  broom.mixed::augment() %>%
+                  dplyr::select(.pred, BodyTemp) %>%
+                  dplyr::mutate(.resid = .pred - BodyTemp)
+
+#plot model predictions from tuned model versus actual outcomes
+#geom_hline plots a 45 degree line, along which the results should fall
+ggplot2::ggplot(lasso_resid_fit, aes(x = .pred, y = BodyTemp)) +
+  geom_abline(slope = 1, intercept = 0, color = "red", lty = 2) +
+  geom_point() +
+  xlim(97, 104) +
+  ylim(97, 104) +
+  labs(title = "LASSO fit: Predicted vs. Actual Body Temperature",
+        x = "Predicted Body Temperature (F)",
+        y = "Actual Body Temperature (F)")
+
+#plot model with residuals
+#the geom_hline plots a straight horizontal line along which the results should fall
+ggplot2::ggplot(lasso_resid_fit, aes(x = as.numeric(row.names(lasso_resid_fit)), y = .resid))+
+  geom_hline(yintercept = 0, color = "red", lty = 2) +
+  geom_point() +
+  labs(title = "Lasso Test Fit: Residuals",
+        x = "Observation Number",
+        y = "Residual")
+
+#plot model fit vs residuals
+#the geom_hline plots a straight horizontal line along which the results fall
+ggplot2::ggplot(lasso_resid_fit, aes(x = .pred, y = .resid))+
+  geom_hline(yintercept = 0, color = "red", lty = 2) +
+  geom_point() +
+  xlim(97, 104) +
+  labs(title = "LASSO Test Fit: Residuals vs Fitted Body Temperature",
+        x = "Fitted Body Temperature (F)",
+        y = "Residual")
+
+```
+
+---
+
+## Overall Conclusion
+None of the models used in this analysis predict the chosen outcome (actual body temperature) all that well. There's a variety of potential reasons for this - all of which warrant further consideration in an actual research project. Most notably, not every patient with influenza will have a fever. It would be interesting to repeat this analysis with other outcomes with which influenza typically present (e.g. cough, sore throat, myalgia, etc.).

@@ -1,0 +1,414 @@
+---
+title: "Influenza Project - TidyModels Analysis (Part 2)"
+output: 
+  html_document:
+    theme: flatly
+    toc: FALSE
+---
+<br>
+
+## Introduction
+This exercise focuses on using the TidyModels framework for model evaluation and the influenza data. The main portion conducts model evaluation for the categorical outcome of interest. The appendix, added by fellow group member Joe Martin, adds a similar analysis for the continuous outcome of interest.
+
+The raw data for this exercise comes from the following citation:
+McKay, Brian et al. (2020), Virulence-mediated infectiousness and activity trade-offs and their impact on transmission potential of patients infected with influenza, Dryad, Dataset, https://doi.org/10.5061/dryad.51c59zw4v.
+
+The processed data was produced on the `Data Processing` tab.
+
+
+Within this analysis, the following definitions exist:
+
+* Main predictor of interest = Runny Nose
+* Continuous outcome of interest = Body Temperature
+* Categorical outcome of interest = Nausea
+* Whichever outcome is not currently fitted will be considered a predictor of interest
+* All variables are included (even when there are multiple variables for the same symptom)
+
+---
+
+## Required Packages
+The following R packages are required for this exercise:
+
+* here: for data loading/saving
+* tidyverse: for data management
+* tidymodels: for data modeling
+* skimr: for variable summaries
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#libraries required
+library(here) #for data loading/saving
+library(tidyverse) #for data management
+library(tidymodels) #for data modeling
+library(skimr) #for variable summaries
+
+#set global environment to avoid scientific notation
+options(scipen = 999)
+```
+
+---
+
+## Load Processed Data
+Load the data created on the `Data Processing` page.
+```{r load}
+# path to data
+# note the use of the here() package and not absolute paths
+data_location <- here::here("data","flu","processeddata.rds")
+
+# load data using the "ReadRDS" function in base R.
+mydata <- base::readRDS(data_location)
+```
+
+---
+
+## Data Summary
+For a more robust exploration, refer to the `Exploratory Data Analysis` page. However, for reference, we can look at the dataframe summary using the `skimr` package.
+```{r}
+#summary of data using skimr package
+skimr::skim(mydata)
+```
+
+---
+
+## Data Splitting
+
+Task: Write a code that takes the data and splits it randomly into a train and test datasets.The code for this section comes from the "Data Splitting" portion of the [Tidyverse Tutorial](https://www.tidymodels.org/start/recipes/). 
+```{r data splitting}
+#fix the random numbers by setting the seed
+#this enables the analysis to be reproducible when random numbers are used
+set.seed(222)
+
+#put 3/4 of data into the training set
+data_split <- rsample::initial_split(mydata, prop = 3/4)
+
+#create dataframes for the two sets:
+train_data <- rsample::training(data_split)
+test_data <- rsample::testing(data_split)
+```
+
+---
+
+## Logistic Regression for Categorical Outcome: Nausea
+For the categorical outcome of interest (nausea) we can do the following:
+
+1. Create a logistic regression workflow 
+2. Fit the model to all predictors
+3. Fit the model to our primary predictor (runny nose)
+4. Compare the models
+
+<br>
+
+### Workflow creation and model fitting
+
+Task: Create a simple recipe that fits categorical outcome of interest (Nausea) to all predictors. The code for this section comes from the "Create Recipes" portion of the [Tidyverse Tutorial](https://www.tidymodels.org/start/recipes/). Ignore the concept of roles and features discussed in the tutorial.
+
+```{r workflow and fit}
+#initiate a new recipe using 'recipe' function
+nausea_rec <- recipes::recipe(Nausea ~., data = train_data)
+
+#build a model specfiication using 'parsnip' package
+lr_mod <- parsnip::logistic_reg() %>%
+          parsnip::set_engine("glm")
+
+#use 'workflows' package to create a simple workflow that fits a logistic model to all predictors using glm function
+nausea_wflow <- workflows::workflow() %>%
+                workflows::add_model(lr_mod) %>%
+                workflows::add_recipe(nausea_rec)
+nausea_wflow
+#0 recipe steps?
+
+#use function to prepare the recipe and train the model from the resulting predictors
+nausea_fit <- nausea_wflow %>%
+                parsnip::fit(data = train_data)
+
+#create tibble for model fit using broom and extract
+nausea_fit %>%
+  workflowsets::extract_fit_parsnip() %>%
+  broom::tidy()
+
+#create tibble for model fit using broom and extract
+#use mutate_if to reduce the number of decimal places
+nausea_tibble <- nausea_fit %>%
+                  workflowsets::extract_fit_parsnip() %>%
+                  broom::tidy() %>%
+                  dplyr::mutate_if(is.numeric, round, 3)
+nausea_tibble
+```
+
+---
+
+### Model 1: All Predictors
+
+Task: Examine the predictions, ROC and ROC-AUC for the data. Apply it to both the training and test data. The code for this section comes from the "Use a trained workflow" portion of the [Tidyverse Tutorial](https://www.tidymodels.org/start/recipes/) 
+```{r model 1 evaluation}
+#predict the nausea variable using the test data
+stats::predict(nausea_fit, test_data)
+#warning is expected as there are colinear/nested variables contained in the dataset
+
+#predict the probability rather than just the category of variable
+nausea_aug_test <- tune::augment(nausea_fit, test_data)
+#warning is expected as there are colinear/nested variables contained in the dataset
+
+#generate ROC curve for test data
+nausea_aug_test %>%
+  yardstick::roc_curve(truth = Nausea, .pred_Yes, event_level = "second") %>%
+  workflowsets::autoplot()
+
+#estimate the area under the curve for test data
+nausea_aug_test %>%
+  yardstick::roc_auc(truth = Nausea, .pred_Yes, event_level = "second")
+#ROC-AUC = 0.724
+#Suggests the model may be useful in predicting the Nausea outcome
+
+#predict the nausea variable using the training data
+stats::predict(nausea_fit, train_data)
+#warning is expected as there are colinear/nested variables contained in the dataset
+
+#predict the probability rather than just the category of variable
+nausea_aug_train <- tune::augment(nausea_fit, train_data)
+#warning is expected as there are colinear/nested variables contained in the dataset
+
+#generate ROC curve for training data
+nausea_aug_train %>%
+  yardstick::roc_curve(truth = Nausea, .pred_Yes, event_level = "second") %>%
+  workflowsets::autoplot()
+
+#estimate the area under the curve for training data
+nausea_aug_train %>%
+  yardstick::roc_auc(truth = Nausea, .pred_Yes, event_level = "second")
+#ROC-AUC = 0.787
+#Suggests the model may be useful in predicting the Nausea outcome
+#slightly better value than ROC-AUC using test data but not extremely different
+```
+
+---
+
+### Alternative model: Runny Nose Only
+
+Task: Re-do the fitting but now with a model that only fits the main predictor (RunnyNose) to the categorical outcome (Nausea). 
+
+First, set up a new recipe and create a new workflow function/fit.
+```{r alternative workflow and fit}
+#initiate a new recipe using 'recipe' function
+nausea_rec_RN <- recipes::recipe(Nausea ~ RunnyNose, data = train_data)
+
+#use the same model specification defined above (lr_mod)
+
+#use 'workflows' package to create a simple workflow that fits a logistic model to all predictors using glm function
+nausea_wflow_RN <- workflows::workflow() %>%
+                workflows::add_model(lr_mod) %>%
+                workflows::add_recipe(nausea_rec_RN)
+nausea_wflow_RN
+#0 recipe steps?
+
+#use function to prepare the recipe and train the model from the resulting predictors
+nausea_fit_RN <- nausea_wflow_RN %>%
+                  parsnip::fit(data = train_data)
+
+#create tibble for model fit using broom and extract
+nausea_fit_RN %>%
+  workflowsets::extract_fit_parsnip() %>%
+  broom::tidy()
+
+#create tibble for model fit using broom and extract
+#use mutate_if to reduce the number of decimal places
+nausea_tibble_RN <- nausea_fit_RN %>%
+                      workflowsets::extract_fit_parsnip() %>%
+                      broom::tidy() %>%
+                      dplyr::mutate_if(is.numeric, round, 3)
+nausea_tibble_RN
+```
+
+---
+
+### Logistic Model Comparison
+Now examine the predictions, ROC and ROC-AUC for the data. Apply it to both the training and test data.  
+```{r alternative evaluation}
+#predict the nausea variable using the test data
+stats::predict(nausea_fit_RN, test_data)
+#warning is expected as there are colinear/nested variables contained in the dataset
+
+#predict the probability rather than just the category of variable
+nausea_aug_test_RN <- tune::augment(nausea_fit_RN, test_data)
+#warning is expected as there are colinear/nested variables contained in the dataset
+```
+
+<br>
+
+Now, generate ROC curves and calculate ROC-AUC.
+```{r}
+#generate ROC curve for test data
+nausea_aug_test_RN %>%
+  yardstick::roc_curve(truth = Nausea, .pred_Yes, event_level = "second") %>%
+  workflowsets::autoplot()
+#almost a diagonal line
+
+#estimate the area under the curve for test data
+nausea_aug_test_RN %>%
+  yardstick::roc_auc(truth = Nausea, .pred_Yes, event_level = "second")
+#ROC-AUC = 0.466
+#Suggests the model may not be that useful in predicting the Nausea outcome
+
+#predict the nausea variable using the training data
+stats::predict(nausea_fit_RN, train_data)
+#warning is expected as there are colinear/nested variables contained in the dataset
+
+#predict the probability rather than just the category of variable
+nausea_aug_train_RN <- tune::augment(nausea_fit_RN, train_data)
+#warning is expected as there are colinear/nested variables contained in the dataset
+
+#generate ROC curve for training data
+nausea_aug_train_RN %>%
+  yardstick::roc_curve(truth = Nausea, .pred_Yes, event_level = "second") %>%
+  workflowsets::autoplot()
+#almost a diagonal line
+
+#estimate the area under the curve for training data
+nausea_aug_train_RN %>%
+  yardstick::roc_auc(truth = Nausea, .pred_Yes, event_level = "second")
+#ROC-AUC = 0.519
+```
+The ROC-AUC values suggest the models may be not be that useful in predicting the Nausea outcome. The ROC-AUC is slightly better value for the training data than for the test data (but not extremely different). There is approximately the same amount of difference for the test/train in model 1.
+
+---
+
+## Appendix A - Continuous Outcome Model (Added by Joe Martin)
+For the continuous outcome of interest (body temperature) we can do the following:
+
+1. Create a linear regression workflow 
+2. Fit the model to all predictors
+3. Fit the model to our primary predictor (runny nose)
+4. Compare the models
+
+<br>
+
+### Model 1: All Predictors
+```{r linear-model-setup1}
+# I'm continuing to use the same data and code as in Part 1. 
+# In this part, the outcome variable will be BODY TEMPERATURE and will use a LINEAR MODEL
+
+#initiate a new recipe using 'recipe' function
+bt_rec <- recipes::recipe(BodyTemp ~., data = train_data)
+
+#build a model specfiication using 'parsnip' package
+lm_mod <- parsnip::linear_reg() %>%
+          parsnip::set_engine("lm")
+```
+
+<br>
+
+```{r}
+#use 'workflows' package to create a simple workflow that fits a logistic model to all predictors using glm function
+bt_wflow <- workflows::workflow() %>%
+                workflows::add_model(lm_mod) %>%
+                workflows::add_recipe(bt_rec)
+#0 recipe steps?
+
+#use function to prepare the recipe and train the model from the resulting predictors
+bt_fit <- bt_wflow %>%
+                parsnip::fit(data = train_data)
+
+#create tibble for model fit using broom and extract
+bt_fit %>%
+  workflowsets::extract_fit_parsnip() %>%
+  broom::tidy()
+```
+
+<br>
+
+```{r}
+#create tibble for model fit using broom and extract
+#use mutate_if to reduce the number of decimal places
+#increase number of decimal places to see significant p-values
+bt_tibble <- bt_fit %>%
+                  workflowsets::extract_fit_parsnip() %>%
+                  broom::tidy() %>%
+                  dplyr::mutate_if(is.numeric, round, 6)
+bt_tibble
+```
+
+<br>
+
+```{r linear-model-eval, echo = FALSE}
+#predict the nausea variable using the test data
+stats::predict(bt_fit, test_data)
+#warning is expected as there are colinear/nested variables contained in the dataset
+
+#predict the probability rather than just the category of variable
+bt_aug_test <- tune::augment(bt_fit, test_data)
+#warning is expected as there are colinear/nested variables contained in the dataset
+```
+
+<br>
+
+Test for error in the model with Root Mean-Squared Error.    
+```{r}
+#use RMSE to evaluate linear model
+bt_error <- bt_aug_test %>% 
+  yardstick::rmse(truth = BodyTemp, .pred)
+bt_error$title <- "Error for all variables"
+
+```
+
+<br>
+
+### Alternative Model: Runny Nose Only
+
+```{r linear-model-setup2}
+
+#initiate a new recipe using 'recipe' function
+rn_rec <- recipes::recipe(BodyTemp ~ RunnyNose, data = train_data)
+
+#build a model specification using 'parsnip' package
+rn_mod <- parsnip::linear_reg() %>%
+          parsnip::set_engine("lm")
+
+#use 'workflows' package to create a simple workflow that fits a logistic model to all predictors using glm function
+rn_wflow <- workflows::workflow() %>%
+                workflows::add_model(lm_mod) %>%
+                workflows::add_recipe(rn_rec)
+rn_wflow
+#0 recipe steps?
+
+#use function to prepare the recipe and train the model from the resulting predictors
+rn_fit <- rn_wflow %>%
+                parsnip::fit(data = train_data)
+
+#create tibble for model fit using broom and extract
+rn_fit %>%
+  workflowsets::extract_fit_parsnip() %>%
+  broom::tidy()
+
+#create tibble for model fit using broom and extract
+#use mutate_if to reduce the number of decimal places
+#increase number of decimal places to see significant p-values
+rn_tibble <- rn_fit %>%
+                  workflowsets::extract_fit_parsnip() %>%
+                  broom::tidy() %>%
+                  dplyr::mutate_if(is.numeric, round, 6)
+rn_tibble
+
+#predict the nausea variable using the test data
+stats::predict(rn_fit, test_data)
+#warning is expected as there are colinear/nested variables contained in the dataset
+
+#predict the probability rather than just the category of variable
+rn_aug_test <- tune::augment(rn_fit, test_data)
+#warning is expected as there are colinear/nested variables contained in the dataset
+```
+
+---
+### Linear Model Comparison
+We can compare the models using root mean squared error (RMSE).
+```{r runny_nose_eval}
+#use RMSE to evaluate linear model
+
+rn_error <- rn_aug_test %>% 
+  yardstick::rmse(truth = BodyTemp, .pred)
+
+rn_error$title <- "Error for Runny Nose Model"
+
+error <- bind_rows(bt_error,rn_error)
+
+error
+```
+The RMSE for the Runny Nose model is slightly lower than the RMSE for the model which tests all variables, so we can conclude that it is slightly better at predicting body temperature. 

@@ -1,0 +1,1743 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Influenza Project - Machine Learning Models</title>
+
+<script src="site_libs/header-attrs-2.11/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+
+<style type="text/css">
+  code {
+    white-space: pre;
+  }
+  .sourceCode {
+    overflow: visible;
+  }
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  { color: #cccccc; background-color: #303030; }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ffcfaf; } /* Alert */
+code span.an { color: #7f9f7f; font-weight: bold; } /* Annotation */
+code span.at { } /* Attribute */
+code span.bn { color: #dca3a3; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #f0dfaf; } /* ControlFlow */
+code span.ch { color: #dca3a3; } /* Char */
+code span.cn { color: #dca3a3; font-weight: bold; } /* Constant */
+code span.co { color: #7f9f7f; } /* Comment */
+code span.cv { color: #7f9f7f; font-weight: bold; } /* CommentVar */
+code span.do { color: #7f9f7f; } /* Documentation */
+code span.dt { color: #dfdfbf; } /* DataType */
+code span.dv { color: #dcdccc; } /* DecVal */
+code span.er { color: #c3bf9f; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #c0bed1; } /* Float */
+code span.fu { color: #efef8f; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #7f9f7f; font-weight: bold; } /* Information */
+code span.kw { color: #f0dfaf; } /* Keyword */
+code span.op { color: #f0efd0; } /* Operator */
+code span.ot { color: #efef8f; } /* Other */
+code span.pp { color: #ffcfaf; font-weight: bold; } /* Preprocessor */
+code span.sc { color: #dca3a3; } /* SpecialChar */
+code span.ss { color: #cc9393; } /* SpecialString */
+code span.st { color: #cc9393; } /* String */
+code span.va { } /* Variable */
+code span.vs { color: #cc9393; } /* VerbatimString */
+code span.wa { color: #7f9f7f; font-weight: bold; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div class="navbar navbar-inverse  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Home</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="./aboutme.html">About Me</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    MADA Exercises
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="./rcoding.html">R Coding</a>
+    </li>
+    <li>
+      <a href="./visualization.html">Visualization</a>
+    </li>
+    <li>
+      <a href="./tidytuesday_exercise.html">Tidy Tuesday Exercise #1</a>
+    </li>
+    <li>
+      <a href="./tidytuesday_exercise2.html">Tidy Tuesday Exercise #2</a>
+    </li>
+    <li class="dropdown-submenu">
+      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Influenza Analysis Project</a>
+      <ul class="dropdown-menu" role="menu">
+        <li>
+          <a href="./flu_analysis_proj.html">Introduction</a>
+        </li>
+        <li>
+          <a href="./processing.html">Data Processing</a>
+        </li>
+        <li>
+          <a href="./exploratory_analysis.html">Exploratory Data Analysis</a>
+        </li>
+        <li>
+          <a href="./tidymodels_1.html">TidyModels Analysis Part 1</a>
+        </li>
+        <li>
+          <a href="./tidymodels_2.html">TidyModels Analysis Part 2</a>
+        </li>
+        <li>
+          <a href="./ml_analysis.html">Machine Learning Analysis</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/morganataylor/MorganTaylor-MADA-portfolio">
+    <span class="fa fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Influenza Project - Machine Learning Models</h1>
+
+</div>
+
+
+<p><br></p>
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>This exercise fits three machine learning models to the influenza data: decision tree, LASSO, and random forest. It compares the three chosen models, and then finally fits the “best” model to the test data.</p>
+<p><br></p>
+<p>The raw data for this exercise comes from the following citation: McKay, Brian et al. (2020), Virulence-mediated infectiousness and activity trade-offs and their impact on transmission potential of patients infected with influenza, Dryad, Dataset, <a href="https://doi.org/10.5061/dryad.51c59zw4v" class="uri">https://doi.org/10.5061/dryad.51c59zw4v</a>.</p>
+<p>The processed data was produced on the <code>Data Processing</code> tab.</p>
+<p><br></p>
+<p>Within this analysis, the following definitions exist:</p>
+<ul>
+<li>Main predictor of interest = Runny Nose</li>
+<li>Continuous outcome of interest = Body Temperature</li>
+</ul>
+<p><br></p>
+<p>Each machine learning model will be follow this process:</p>
+<ol style="list-style-type: decimal">
+<li>Model Specification</li>
+<li>Workflow Definition</li>
+<li>Tuning Grid Specification</li>
+<li>Tuning Using Cross-Validation and the <code>tune_grid()</code> function</li>
+<li>Identify Best Model</li>
+<li>Model Evaluation</li>
+</ol>
+<hr />
+</div>
+<div id="required-packages" class="section level2">
+<h2>Required Packages</h2>
+<p>The following R packages are required for this exercise:</p>
+<ul>
+<li>here: for data loading/saving</li>
+<li>tidyverse: for data management</li>
+<li>tidymodels: for data modeling</li>
+<li>skimr: for variable summaries</li>
+<li>broom.mixed: for converting bayesian models to tidy tibbles</li>
+<li>rpart.plot: for visualizing a decision tree</li>
+<li>vip: for variable importance plots</li>
+<li>glmnet: for lasso models</li>
+<li>doParallel: for parallel backend for tuning processes</li>
+<li>ranger: for random forest models</li>
+</ul>
+<p><br></p>
+</div>
+<div id="load-data" class="section level2">
+<h2>Load Data</h2>
+<p>Load the processed data from the <code>processed_data</code> folder in the project file.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">#path to data</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co">#note the use of the here() package and not absolute paths</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>data_location <span class="ot">&lt;-</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;data&quot;</span>,<span class="st">&quot;flu&quot;</span>,<span class="st">&quot;ML_data.rds&quot;</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co">#load data. </span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>ML_processed <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(data_location)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co">#summary of data using skimr package</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>skimr<span class="sc">::</span><span class="fu">skim</span>(ML_processed)</span></code></pre></div>
+<table>
+<caption>Data summary</caption>
+<tbody>
+<tr class="odd">
+<td align="left">Name</td>
+<td align="left">ML_processed</td>
+</tr>
+<tr class="even">
+<td align="left">Number of rows</td>
+<td align="left">730</td>
+</tr>
+<tr class="odd">
+<td align="left">Number of columns</td>
+<td align="left">26</td>
+</tr>
+<tr class="even">
+<td align="left">_______________________</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">Column type frequency:</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">factor</td>
+<td align="left">25</td>
+</tr>
+<tr class="odd">
+<td align="left">numeric</td>
+<td align="left">1</td>
+</tr>
+<tr class="even">
+<td align="left">________________________</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">Group variables</td>
+<td align="left">None</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: factor</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">skim_variable</th>
+<th align="right">n_missing</th>
+<th align="right">complete_rate</th>
+<th align="left">ordered</th>
+<th align="right">n_unique</th>
+<th align="left">top_counts</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">SwollenLymphNodes</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">2</td>
+<td align="left">No: 418, Yes: 312</td>
+</tr>
+<tr class="even">
+<td align="left">ChestCongestion</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">2</td>
+<td align="left">Yes: 407, No: 323</td>
+</tr>
+<tr class="odd">
+<td align="left">ChillsSweats</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">2</td>
+<td align="left">Yes: 600, No: 130</td>
+</tr>
+<tr class="even">
+<td align="left">NasalCongestion</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">2</td>
+<td align="left">Yes: 563, No: 167</td>
+</tr>
+<tr class="odd">
+<td align="left">Sneeze</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">2</td>
+<td align="left">Yes: 391, No: 339</td>
+</tr>
+<tr class="even">
+<td align="left">Fatigue</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">2</td>
+<td align="left">Yes: 666, No: 64</td>
+</tr>
+<tr class="odd">
+<td align="left">SubjectiveFever</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">2</td>
+<td align="left">Yes: 500, No: 230</td>
+</tr>
+<tr class="even">
+<td align="left">Headache</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">2</td>
+<td align="left">Yes: 615, No: 115</td>
+</tr>
+<tr class="odd">
+<td align="left">Weakness</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">TRUE</td>
+<td align="right">4</td>
+<td align="left">Mod: 338, Mil: 223, Sev: 120, Non: 49</td>
+</tr>
+<tr class="even">
+<td align="left">CoughIntensity</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">TRUE</td>
+<td align="right">4</td>
+<td align="left">Mod: 357, Sev: 172, Mil: 154, Non: 47</td>
+</tr>
+<tr class="odd">
+<td align="left">Myalgia</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">TRUE</td>
+<td align="right">4</td>
+<td align="left">Mod: 325, Mil: 213, Sev: 113, Non: 79</td>
+</tr>
+<tr class="even">
+<td align="left">RunnyNose</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">2</td>
+<td align="left">Yes: 519, No: 211</td>
+</tr>
+<tr class="odd">
+<td align="left">AbPain</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">2</td>
+<td align="left">No: 639, Yes: 91</td>
+</tr>
+<tr class="even">
+<td align="left">ChestPain</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">2</td>
+<td align="left">No: 497, Yes: 233</td>
+</tr>
+<tr class="odd">
+<td align="left">Diarrhea</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">2</td>
+<td align="left">No: 631, Yes: 99</td>
+</tr>
+<tr class="even">
+<td align="left">EyePn</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">2</td>
+<td align="left">No: 617, Yes: 113</td>
+</tr>
+<tr class="odd">
+<td align="left">Insomnia</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">2</td>
+<td align="left">Yes: 415, No: 315</td>
+</tr>
+<tr class="even">
+<td align="left">ItchyEye</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">2</td>
+<td align="left">No: 551, Yes: 179</td>
+</tr>
+<tr class="odd">
+<td align="left">Nausea</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">2</td>
+<td align="left">No: 475, Yes: 255</td>
+</tr>
+<tr class="even">
+<td align="left">EarPn</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">2</td>
+<td align="left">No: 568, Yes: 162</td>
+</tr>
+<tr class="odd">
+<td align="left">Pharyngitis</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">2</td>
+<td align="left">Yes: 611, No: 119</td>
+</tr>
+<tr class="even">
+<td align="left">Breathless</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">2</td>
+<td align="left">No: 436, Yes: 294</td>
+</tr>
+<tr class="odd">
+<td align="left">ToothPn</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">2</td>
+<td align="left">No: 565, Yes: 165</td>
+</tr>
+<tr class="even">
+<td align="left">Vomit</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">2</td>
+<td align="left">No: 652, Yes: 78</td>
+</tr>
+<tr class="odd">
+<td align="left">Wheeze</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">2</td>
+<td align="left">No: 510, Yes: 220</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: numeric</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">skim_variable</th>
+<th align="right">n_missing</th>
+<th align="right">complete_rate</th>
+<th align="right">mean</th>
+<th align="right">sd</th>
+<th align="right">p0</th>
+<th align="right">p25</th>
+<th align="right">p50</th>
+<th align="right">p75</th>
+<th align="right">p100</th>
+<th align="left">hist</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">BodyTemp</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">98.94</td>
+<td align="right">1.2</td>
+<td align="right">97.2</td>
+<td align="right">98.2</td>
+<td align="right">98.5</td>
+<td align="right">99.3</td>
+<td align="right">103.1</td>
+<td align="left">▇▇▂▁▁</td>
+</tr>
+</tbody>
+</table>
+<p><br></p>
+<hr />
+</div>
+<div id="data-setup" class="section level2">
+<h2>Data Setup</h2>
+<p>Following the parameters determined in the assignment guidelines:</p>
+<ul>
+<li>Set the random seed to <code>123</code></li>
+<li>Split the dataset into 70% training, 30% testing with <code>BodyTemp</code> as stratification</li>
+<li>5-fold cross validation, 5 times repeated, stratified on <code>BodyTemp</code> for the CV folds</li>
+<li>Create a recipe for data and fitting that codes categorical variables as dummy variables</li>
+</ul>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">#set random seed to 123</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co">#split dataset into 70% training, 30% testing</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co">#use BodyTemp as stratification</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>data_split <span class="ot">&lt;-</span> rsample<span class="sc">::</span><span class="fu">initial_split</span>(ML_processed, <span class="at">prop =</span> <span class="dv">7</span><span class="sc">/</span><span class="dv">10</span>,</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>                                     <span class="at">strata =</span> BodyTemp)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co">#create dataframes for the two sets:</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>train_data <span class="ot">&lt;-</span> rsample<span class="sc">::</span><span class="fu">training</span>(data_split)</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>test_data <span class="ot">&lt;-</span> rsample<span class="sc">::</span><span class="fu">testing</span>(data_split)</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co">#training set proportions by BodyTemp</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>train_data <span class="sc">%&gt;%</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">count</span>(BodyTemp) <span class="sc">%&gt;%</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">prop =</span> n <span class="sc">/</span> <span class="fu">sum</span>(n))</span></code></pre></div>
+<pre><code>##    BodyTemp  n        prop
+## 1      97.3  1 0.001968504
+## 2      97.4  5 0.009842520
+## 3      97.5  8 0.015748031
+## 4      97.6  5 0.009842520
+## 5      97.7 12 0.023622047
+## 6      97.8 19 0.037401575
+## 7      97.9 23 0.045275591
+## 8      98.0 18 0.035433071
+## 9      98.1 29 0.057086614
+## 10     98.2 32 0.062992126
+## 11     98.3 42 0.082677165
+## 12     98.4 29 0.057086614
+## 13     98.5 37 0.072834646
+## 14     98.6 14 0.027559055
+## 15     98.7 28 0.055118110
+## 16     98.8 15 0.029527559
+## 17     98.9 13 0.025590551
+## 18     99.0 21 0.041338583
+## 19     99.1 11 0.021653543
+## 20     99.2 15 0.029527559
+## 21     99.3 13 0.025590551
+## 22     99.4 10 0.019685039
+## 23     99.5  8 0.015748031
+## 24     99.6  3 0.005905512
+## 25     99.7  6 0.011811024
+## 26     99.8  5 0.009842520
+## 27     99.9  9 0.017716535
+## 28    100.0  5 0.009842520
+## 29    100.1  4 0.007874016
+## 30    100.2  5 0.009842520
+## 31    100.3  4 0.007874016
+## 32    100.4  5 0.009842520
+## 33    100.5  3 0.005905512
+## 34    100.6  2 0.003937008
+## 35    100.8  1 0.001968504
+## 36    100.9  7 0.013779528
+## 37    101.0  1 0.001968504
+## 38    101.1  3 0.005905512
+## 39    101.2  3 0.005905512
+## 40    101.3  1 0.001968504
+## 41    101.5  1 0.001968504
+## 42    101.6  2 0.003937008
+## 43    101.7  3 0.005905512
+## 44    101.8  1 0.001968504
+## 45    101.9  3 0.005905512
+## 46    102.0  2 0.003937008
+## 47    102.1  1 0.001968504
+## 48    102.2  2 0.003937008
+## 49    102.4  1 0.001968504
+## 50    102.5  1 0.001968504
+## 51    102.6  2 0.003937008
+## 52    102.7  2 0.003937008
+## 53    102.8  4 0.007874016
+## 54    103.0  6 0.011811024
+## 55    103.1  2 0.003937008</code></pre>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">#testing set proportions by BodyTemp</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>test_data <span class="sc">%&gt;%</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">count</span>(BodyTemp) <span class="sc">%&gt;%</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">prop =</span> n <span class="sc">/</span> <span class="fu">sum</span>(n))</span></code></pre></div>
+<pre><code>##    BodyTemp  n        prop
+## 1      97.2  2 0.009009009
+## 2      97.4  2 0.009009009
+## 3      97.5  1 0.004504505
+## 4      97.6  2 0.009009009
+## 5      97.7  2 0.009009009
+## 6      97.8  4 0.018018018
+## 7      97.9  6 0.027027027
+## 8      98.0 12 0.054054054
+## 9      98.1 17 0.076576577
+## 10     98.2 18 0.081081081
+## 11     98.3 20 0.090090090
+## 12     98.4 11 0.049549550
+## 13     98.5 16 0.072072072
+## 14     98.6 13 0.058558559
+## 15     98.7  7 0.031531532
+## 16     98.8  9 0.040540541
+## 17     98.9 10 0.045045045
+## 18     99.0  4 0.018018018
+## 19     99.1  4 0.018018018
+## 20     99.2  5 0.022522523
+## 21     99.3  5 0.022522523
+## 22     99.4  1 0.004504505
+## 23     99.5  6 0.027027027
+## 24     99.6  3 0.013513514
+## 25     99.7  5 0.022522523
+## 26     99.8  1 0.004504505
+## 27     99.9  1 0.004504505
+## 28    100.0  2 0.009009009
+## 29    100.1  3 0.013513514
+## 30    100.2  3 0.013513514
+## 31    100.3  1 0.004504505
+## 32    100.4  2 0.009009009
+## 33    100.5  2 0.009009009
+## 34    100.6  2 0.009009009
+## 35    100.8  1 0.004504505
+## 36    100.9  2 0.009009009
+## 37    101.0  1 0.004504505
+## 38    101.2  1 0.004504505
+## 39    101.5  1 0.004504505
+## 40    101.8  3 0.013513514
+## 41    101.9  3 0.013513514
+## 42    102.1  1 0.004504505
+## 43    102.2  1 0.004504505
+## 44    102.4  1 0.004504505
+## 45    102.5  1 0.004504505
+## 46    102.6  1 0.004504505
+## 47    102.8  1 0.004504505
+## 48    102.9  1 0.004504505
+## 49    103.0  1 0.004504505</code></pre>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">#5-fold cross validation, 5 times repeated, stratified on `BodyTemp` for the CV folds</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>folds <span class="ot">&lt;-</span> rsample<span class="sc">::</span><span class="fu">vfold_cv</span>(train_data,</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>                           <span class="at">v =</span> <span class="dv">5</span>,</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>                           <span class="at">repeats =</span> <span class="dv">5</span>,</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>                           <span class="at">strata =</span> BodyTemp)</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co">#create recipe that codes categorical variables as dummy variables</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>flu_rec <span class="ot">&lt;-</span> recipes<span class="sc">::</span><span class="fu">recipe</span>(BodyTemp <span class="sc">~</span> ., <span class="at">data =</span> train_data) <span class="sc">%&gt;%</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>           recipes<span class="sc">::</span><span class="fu">step_dummy</span>(<span class="fu">all_nominal_predictors</span>())</span></code></pre></div>
+<hr />
+</div>
+<div id="null-model-performance" class="section level2">
+<h2>Null model performance</h2>
+<p>Determine the performance of a null model (i.e. one with no predictors). For a continuous outcome and RMSE as the metric, a null model is one that predicts the mean of the outcome. Compute the RMSE for both training and test data for such a model.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">#create null model</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>null_mod <span class="ot">&lt;-</span> parsnip<span class="sc">::</span><span class="fu">null_model</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>            parsnip<span class="sc">::</span><span class="fu">set_engine</span>(<span class="st">&quot;parsnip&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>            parsnip<span class="sc">::</span><span class="fu">set_mode</span>(<span class="st">&quot;regression&quot;</span>)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="co">#add recipe and model into workflow</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>null_wflow <span class="ot">&lt;-</span> workflows<span class="sc">::</span><span class="fu">workflow</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>              workflows<span class="sc">::</span><span class="fu">add_recipe</span>(flu_rec) <span class="sc">%&gt;%</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>              workflows<span class="sc">::</span><span class="fu">add_model</span>(null_mod)</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&quot;fit&quot; model to training data</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>null_train <span class="ot">&lt;-</span> null_wflow <span class="sc">%&gt;%</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>                parsnip<span class="sc">::</span><span class="fu">fit</span>(<span class="at">data =</span> train_data)</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="co">#summary of null model with training data to get mean (which in this case is the RMSE)</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>null_train_sum <span class="ot">&lt;-</span> broom.mixed<span class="sc">::</span><span class="fu">tidy</span>(null_train)</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>null_train_sum</span></code></pre></div>
+<pre><code>## # A tibble: 1 x 1
+##   value
+##   &lt;dbl&gt;
+## 1  98.9</code></pre>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">#&quot;fit&quot; model to test data</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>null_test <span class="ot">&lt;-</span> null_wflow <span class="sc">%&gt;%</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>                parsnip<span class="sc">::</span><span class="fu">fit</span>(<span class="at">data =</span> test_data)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="co">#summary of null model with test data to get mean (which in this case is the RMSE)</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>null_test_sum <span class="ot">&lt;-</span> broom.mixed<span class="sc">::</span><span class="fu">tidy</span>(null_test)</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>null_test_sum</span></code></pre></div>
+<pre><code>## # A tibble: 1 x 1
+##   value
+##   &lt;dbl&gt;
+## 1  98.9</code></pre>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co">#RMSE for training data</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>null_RMSE_train <span class="ot">&lt;-</span> tibble<span class="sc">::</span><span class="fu">tibble</span>(</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>                      <span class="at">rmse =</span> <span class="fu">rmse_vec</span>(<span class="at">truth =</span> train_data<span class="sc">$</span>BodyTemp,</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>                                          <span class="at">estimate =</span> <span class="fu">rep</span>(<span class="fu">mean</span>(train_data<span class="sc">$</span>BodyTemp), <span class="fu">nrow</span>(train_data))),</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>                      <span class="at">SE =</span> <span class="dv">0</span>,</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>                      <span class="at">model =</span> <span class="st">&quot;Null - Train&quot;</span>)</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="co">#RMSE for testing data</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>null_RMSE_test <span class="ot">&lt;-</span> tibble<span class="sc">::</span><span class="fu">tibble</span>(</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>                      <span class="at">rmse =</span> <span class="fu">rmse_vec</span>(<span class="at">truth =</span> test_data<span class="sc">$</span>BodyTemp,</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>                                          <span class="at">estimate =</span> <span class="fu">rep</span>(<span class="fu">mean</span>(test_data<span class="sc">$</span>BodyTemp), <span class="fu">nrow</span>(test_data))),</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>                      <span class="at">SE =</span> <span class="dv">0</span>,</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>                      <span class="at">model =</span> <span class="st">&quot;Null - Test&quot;</span>)</span></code></pre></div>
+<hr />
+</div>
+<div id="tree-model" class="section level2">
+<h2>Tree Model</h2>
+<p>Most of the code for this section comes from the <a href="https://www.tidymodels.org/start/tuning/">TidyModels Tutorial for Tuning</a>.</p>
+<div id="model-specification" class="section level3">
+<h3>1. Model Specification</h3>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">#run parallels to determine number of cores</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>cores <span class="ot">&lt;-</span> parallel<span class="sc">::</span><span class="fu">detectCores</span>() <span class="sc">-</span> <span class="dv">1</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>cores</span></code></pre></div>
+<pre><code>## [1] 19</code></pre>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>cl <span class="ot">&lt;-</span> <span class="fu">makeCluster</span>(cores)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="fu">registerDoParallel</span>(cl)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="co">#define the tree model</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>tree_mod <span class="ot">&lt;-</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  parsnip<span class="sc">::</span><span class="fu">decision_tree</span>(<span class="at">cost_complexity =</span> <span class="fu">tune</span>(),</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>                         <span class="at">tree_depth =</span> <span class="fu">tune</span>(),</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>                         <span class="at">min_n =</span> <span class="fu">tune</span>()) <span class="sc">%&gt;%</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>  parsnip<span class="sc">::</span><span class="fu">set_engine</span>(<span class="st">&quot;rpart&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>  parsnip<span class="sc">::</span><span class="fu">set_mode</span>(<span class="st">&quot;regression&quot;</span>)</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a><span class="co">#use the recipe specified earlier (line 133)</span></span></code></pre></div>
+<p><br></p>
+</div>
+<div id="workflow-definition" class="section level3">
+<h3>2. Workflow Definition</h3>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">#define workflow for tree</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>tree_wflow <span class="ot">&lt;-</span> workflows<span class="sc">::</span><span class="fu">workflow</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>               workflows<span class="sc">::</span><span class="fu">add_model</span>(tree_mod) <span class="sc">%&gt;%</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>               workflows<span class="sc">::</span><span class="fu">add_recipe</span>(flu_rec)</span></code></pre></div>
+<p><br></p>
+</div>
+<div id="tuning-grid-specification" class="section level3">
+<h3>3. Tuning Grid Specification</h3>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co">#tuning grid specification</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>tree_grid <span class="ot">&lt;-</span> dials<span class="sc">::</span><span class="fu">grid_regular</span>(<span class="fu">cost_complexity</span>(),</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>                                 <span class="fu">tree_depth</span>(),</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>                                 <span class="fu">min_n</span>(),</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>                                 <span class="at">levels =</span> <span class="dv">5</span>)</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="co">#tree depth</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>tree_grid <span class="sc">%&gt;%</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">count</span>(tree_depth)</span></code></pre></div>
+<pre><code>## # A tibble: 5 x 2
+##   tree_depth     n
+##        &lt;int&gt; &lt;int&gt;
+## 1          1    25
+## 2          4    25
+## 3          8    25
+## 4         11    25
+## 5         15    25</code></pre>
+<p><br></p>
+</div>
+<div id="tuning-using-cross-validation-and-the-tune_grid-function" class="section level3">
+<h3>4. Tuning Using Cross-Validation and the <code>tune_grid()</code> function</h3>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co">#tune the model with previously specified cross-validation and RMSE as target metric</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>tree_res <span class="ot">&lt;-</span> tree_wflow <span class="sc">%&gt;%</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>                tune<span class="sc">::</span><span class="fu">tune_grid</span>(<span class="at">resamples =</span> folds,</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>                                <span class="at">grid =</span> tree_grid,</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>                                <span class="at">control =</span> <span class="fu">control_grid</span>(<span class="at">verbose =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>                                <span class="at">metrics =</span> yardstick<span class="sc">::</span><span class="fu">metric_set</span>(rmse))</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a><span class="co">#collect metrics</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>tree_res <span class="sc">%&gt;%</span> workflowsets<span class="sc">::</span><span class="fu">collect_metrics</span>()</span></code></pre></div>
+<pre><code>## # A tibble: 125 x 9
+##    cost_complexity tree_depth min_n .metric .estimator  mean     n std_err
+##              &lt;dbl&gt;      &lt;int&gt; &lt;int&gt; &lt;chr&gt;   &lt;chr&gt;      &lt;dbl&gt; &lt;int&gt;   &lt;dbl&gt;
+##  1    0.0000000001          1     2 rmse    standard    1.19    25  0.0181
+##  2    0.0000000178          1     2 rmse    standard    1.19    25  0.0181
+##  3    0.00000316            1     2 rmse    standard    1.19    25  0.0181
+##  4    0.000562              1     2 rmse    standard    1.19    25  0.0181
+##  5    0.1                   1     2 rmse    standard    1.21    25  0.0177
+##  6    0.0000000001          4     2 rmse    standard    1.24    25  0.0204
+##  7    0.0000000178          4     2 rmse    standard    1.24    25  0.0204
+##  8    0.00000316            4     2 rmse    standard    1.24    25  0.0204
+##  9    0.000562              4     2 rmse    standard    1.23    25  0.0205
+## 10    0.1                   4     2 rmse    standard    1.21    25  0.0177
+## # ... with 115 more rows, and 1 more variable: .config &lt;chr&gt;</code></pre>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co">#default visualization</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>tree_res <span class="sc">%&gt;%</span> <span class="fu">autoplot</span>()</span></code></pre></div>
+<p><img src="ml_analysis_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co">#more detailed plot</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>tree_res <span class="sc">%&gt;%</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  workflowsets<span class="sc">::</span><span class="fu">collect_metrics</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">tree_depth =</span> <span class="fu">factor</span>(tree_depth)) <span class="sc">%&gt;%</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>  ggplot2<span class="sc">::</span><span class="fu">ggplot</span>(<span class="fu">aes</span>(cost_complexity, mean, <span class="at">color =</span> tree_depth)) <span class="sc">+</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>           <span class="fu">geom_line</span>(<span class="at">size =</span> <span class="fl">1.5</span>, <span class="at">alpha =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>           <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>           <span class="fu">facet_wrap</span>(<span class="sc">~</span> .metric, <span class="at">scales =</span> <span class="st">&quot;free&quot;</span>, <span class="at">nrow =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>           <span class="fu">scale_x_log10</span>(<span class="at">labels =</span> scales<span class="sc">::</span><span class="fu">label_number</span>()) <span class="sc">+</span></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>           <span class="fu">scale_color_viridis_d</span>(<span class="at">option =</span> <span class="st">&quot;plasma&quot;</span>, <span class="at">begin =</span> <span class="fl">0.9</span>, <span class="at">end =</span> <span class="dv">0</span>)</span></code></pre></div>
+<p><img src="ml_analysis_files/figure-html/unnamed-chunk-6-2.png" width="672" /></p>
+<p><br></p>
+</div>
+<div id="identify-best-model" class="section level3">
+<h3>5. Identify Best Model</h3>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co">#select the tree model with the lowest rmse</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>tree_lowest_rmse <span class="ot">&lt;-</span> tree_res <span class="sc">%&gt;%</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>                        tune<span class="sc">::</span><span class="fu">select_best</span>(<span class="st">&quot;rmse&quot;</span>)</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a><span class="co">#finalize the workflow by using the selected lasso model</span></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>best_tree_wflow <span class="ot">&lt;-</span> tree_wflow <span class="sc">%&gt;%</span></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>                      tune<span class="sc">::</span><span class="fu">finalize_workflow</span>(tree_lowest_rmse)</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>best_tree_wflow</span></code></pre></div>
+<pre><code>## == Workflow ====================================================================
+## Preprocessor: Recipe
+## Model: decision_tree()
+## 
+## -- Preprocessor ----------------------------------------------------------------
+## 1 Recipe Step
+## 
+## * step_dummy()
+## 
+## -- Model -----------------------------------------------------------------------
+## Decision Tree Model Specification (regression)
+## 
+## Main Arguments:
+##   cost_complexity = 0.0000000001
+##   tree_depth = 1
+##   min_n = 2
+## 
+## Computational engine: rpart</code></pre>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co">#one last fit on the training data</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>best_tree_fit <span class="ot">&lt;-</span> best_tree_wflow <span class="sc">%&gt;%</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>                    parsnip<span class="sc">::</span><span class="fu">fit</span>(<span class="at">data =</span> train_data)</span></code></pre></div>
+<p><br></p>
+</div>
+<div id="model-evaluation" class="section level3">
+<h3>6. Model evaluation</h3>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co">#plot the tree</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>rpart.plot<span class="sc">::</span><span class="fu">rpart.plot</span>(<span class="at">x =</span> workflowsets<span class="sc">::</span><span class="fu">extract_fit_parsnip</span>(best_tree_fit)<span class="sc">$</span>fit,</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>                       <span class="at">roundint =</span> F,</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>                       <span class="at">type =</span> <span class="dv">5</span>,</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>                       <span class="at">digits =</span> <span class="dv">5</span>,</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>                       <span class="at">main =</span> <span class="st">&quot;Selected Tree Model&quot;</span>)</span></code></pre></div>
+<p><img src="ml_analysis_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co">#find predictions and intervals</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>tree_resid <span class="ot">&lt;-</span> best_tree_fit <span class="sc">%&gt;%</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>                  broom.mixed<span class="sc">::</span><span class="fu">augment</span>(<span class="at">new_data =</span> train_data) <span class="sc">%&gt;%</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>                  dplyr<span class="sc">::</span><span class="fu">select</span>(.pred, BodyTemp) <span class="sc">%&gt;%</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>                  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">.resid =</span> .pred <span class="sc">-</span> BodyTemp)</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a><span class="co">#plot model predictions from tuned model versus actual outcomes</span></span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a><span class="co">#geom_abline draws a 45 degree line, along which the results should fall</span></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>ggplot2<span class="sc">::</span><span class="fu">ggplot</span>(tree_resid, <span class="fu">aes</span>(<span class="at">x =</span> .pred, <span class="at">y =</span> BodyTemp)) <span class="sc">+</span></span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_abline</span>(<span class="at">slope =</span> <span class="dv">1</span>, <span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">color =</span> <span class="st">&quot;red&quot;</span>, <span class="at">lty =</span> <span class="dv">2</span>) <span class="sc">+</span> </span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlim</span>(<span class="dv">97</span>, <span class="dv">104</span>) <span class="sc">+</span></span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylim</span> (<span class="dv">97</span>, <span class="dv">104</span>) <span class="sc">+</span></span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Decision Tree Fit: Predicted vs. Actual Body Temperature&quot;</span>,</span>
+<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">&quot;Predicted Body Temperature (F)&quot;</span>,</span>
+<span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">&quot;Actual Body Temperature (F)&quot;</span>)</span></code></pre></div>
+<p><img src="ml_analysis_files/figure-html/unnamed-chunk-8-2.png" width="672" /></p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co">#plot model with residuals</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="co">#the geom_hline plots a straight horizontal line along which the results should fall</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>ggplot2<span class="sc">::</span><span class="fu">ggplot</span>(tree_resid, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">as.numeric</span>(<span class="fu">row.names</span>(tree_resid)), <span class="at">y =</span> .resid))<span class="sc">+</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">color =</span> <span class="st">&quot;red&quot;</span>, <span class="at">lty =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Decision Tree Fit: Residuals&quot;</span>,</span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">&quot;Observation Number&quot;</span>,</span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">&quot;Residual&quot;</span>)</span></code></pre></div>
+<p><img src="ml_analysis_files/figure-html/unnamed-chunk-8-3.png" width="672" /></p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co">#plot model fit vs residuals</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="co">#the geom_hline plots a straight horizontal line along which the results fall</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>ggplot2<span class="sc">::</span><span class="fu">ggplot</span>(tree_resid, <span class="fu">aes</span>(<span class="at">x =</span> .pred, <span class="at">y =</span> .resid))<span class="sc">+</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">color =</span> <span class="st">&quot;red&quot;</span>, <span class="at">lty =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlim</span>(<span class="dv">97</span>, <span class="dv">104</span>) <span class="sc">+</span></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Decision Tree Fit: Residuals vs Fitted Body Temperature&quot;</span>,</span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">&quot;Fitted Body Temperature (F)&quot;</span>,</span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">&quot;Residual&quot;</span>)</span></code></pre></div>
+<p><img src="ml_analysis_files/figure-html/unnamed-chunk-8-4.png" width="672" /></p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co">#print model performance</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="co">#print 10 best performing hyperparameter sets</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>tree_res <span class="sc">%&gt;%</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>  tune<span class="sc">::</span><span class="fu">show_best</span>(<span class="at">n =</span> <span class="dv">10</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="at">rmse =</span> mean, std_err, cost_complexity) <span class="sc">%&gt;%</span></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">rmse =</span> <span class="fu">round</span>(rmse, <span class="dv">3</span>),</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>                <span class="at">std_err =</span> <span class="fu">round</span>(std_err, <span class="dv">4</span>),</span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>                <span class="at">cost_complexity =</span> scales<span class="sc">::</span><span class="fu">scientific</span>(cost_complexity))</span></code></pre></div>
+<pre><code>## # A tibble: 10 x 3
+##     rmse std_err cost_complexity
+##    &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;          
+##  1  1.19  0.0181 1.00e-10       
+##  2  1.19  0.0181 1.78e-08       
+##  3  1.19  0.0181 3.16e-06       
+##  4  1.19  0.0181 5.62e-04       
+##  5  1.19  0.0181 1.00e-10       
+##  6  1.19  0.0181 1.78e-08       
+##  7  1.19  0.0181 3.16e-06       
+##  8  1.19  0.0181 5.62e-04       
+##  9  1.19  0.0181 1.00e-10       
+## 10  1.19  0.0181 1.78e-08</code></pre>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co">#print the best model performance</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>tree_performance <span class="ot">&lt;-</span> tree_res <span class="sc">%&gt;%</span> tune<span class="sc">::</span><span class="fu">show_best</span>(<span class="at">n =</span> <span class="dv">1</span>)</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(tree_performance)</span></code></pre></div>
+<pre><code>## # A tibble: 1 x 9
+##   cost_complexity tree_depth min_n .metric .estimator  mean     n std_err
+##             &lt;dbl&gt;      &lt;int&gt; &lt;int&gt; &lt;chr&gt;   &lt;chr&gt;      &lt;dbl&gt; &lt;int&gt;   &lt;dbl&gt;
+## 1    0.0000000001          1     2 rmse    standard    1.19    25  0.0181
+## # ... with 1 more variable: .config &lt;chr&gt;</code></pre>
+<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co">#compare model performance to null model</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>tree_RMSE <span class="ot">&lt;-</span> tree_res <span class="sc">%&gt;%</span></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>                tune<span class="sc">::</span><span class="fu">show_best</span>(<span class="at">n =</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>                dplyr<span class="sc">::</span><span class="fu">transmute</span>(</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>                  <span class="at">rmse =</span> <span class="fu">round</span>(mean, <span class="dv">3</span>),</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>                  <span class="at">SE =</span> <span class="fu">round</span>(std_err, <span class="dv">4</span>),</span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>                  <span class="at">model =</span> <span class="st">&quot;Tree&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>               dplyr<span class="sc">::</span><span class="fu">bind_rows</span>(null_RMSE_train)</span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>tree_RMSE</span></code></pre></div>
+<pre><code>## # A tibble: 2 x 3
+##    rmse     SE model       
+##   &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;       
+## 1  1.19 0.0181 Tree        
+## 2  1.21 0      Null - Train</code></pre>
+<p>The identified best performing tree model only predicts two different values, which isn’t a great model. In comparing the RMSE to the null model, it is a marginal improvement at best. This is not a good model for this data – time to try something new!</p>
+<p><br></p>
+<hr />
+<p><br></p>
+</div>
+</div>
+<div id="lasso-model" class="section level2">
+<h2>LASSO Model</h2>
+<p>Most of the code for this section comes from the <a href="https://www.tidymodels.org/start/case-study/">TidyModels Tutorial Case Study</a>.</p>
+<p><br></p>
+<div id="model-specification-1" class="section level3">
+<h3>1. Model Specification</h3>
+<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co">#define the lasso model</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="co">#mixture = 1 identifies the model to be a LASSO model</span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>lasso_mod <span class="ot">&lt;-</span></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>  parsnip<span class="sc">::</span><span class="fu">linear_reg</span>(<span class="at">mode =</span> <span class="st">&quot;regression&quot;</span>,</span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>                      <span class="at">penalty =</span> <span class="fu">tune</span>(), </span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>                      <span class="at">mixture =</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>  parsnip<span class="sc">::</span><span class="fu">set_engine</span>(<span class="st">&quot;glmnet&quot;</span>)</span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a><span class="co">#use the recipe specified earlier (line 133)</span></span></code></pre></div>
+<p><br></p>
+</div>
+<div id="workflow-definition-1" class="section level3">
+<h3>2. Workflow Definition</h3>
+<div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co">#define workflow for lasso regression</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>lasso_wflow <span class="ot">&lt;-</span> workflows<span class="sc">::</span><span class="fu">workflow</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>               workflows<span class="sc">::</span><span class="fu">add_model</span>(lasso_mod) <span class="sc">%&gt;%</span></span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>               workflows<span class="sc">::</span><span class="fu">add_recipe</span>(flu_rec)</span></code></pre></div>
+<p><br></p>
+</div>
+<div id="tuning-grid-specification-1" class="section level3">
+<h3>3. Tuning Grid Specification</h3>
+<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co">#tuning grid specification</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>lasso_grid <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">penalty =</span> <span class="dv">10</span><span class="sc">^</span><span class="fu">seq</span>(<span class="sc">-</span><span class="dv">3</span>, <span class="dv">0</span>, <span class="at">length.out =</span> <span class="dv">30</span>))</span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a><span class="co">#5 lowest penalty values</span></span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>lasso_grid <span class="sc">%&gt;%</span></span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">top_n</span>(<span class="sc">-</span><span class="dv">5</span>)</span></code></pre></div>
+<pre><code>## Selecting by penalty</code></pre>
+<pre><code>## # A tibble: 5 x 1
+##   penalty
+##     &lt;dbl&gt;
+## 1 0.001  
+## 2 0.00127
+## 3 0.00161
+## 4 0.00204
+## 5 0.00259</code></pre>
+<div class="sourceCode" id="cb40"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co">#5 highest penalty values</span></span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>lasso_grid <span class="sc">%&gt;%</span></span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">top_n</span>(<span class="dv">5</span>)</span></code></pre></div>
+<pre><code>## Selecting by penalty</code></pre>
+<pre><code>## # A tibble: 5 x 1
+##   penalty
+##     &lt;dbl&gt;
+## 1   0.386
+## 2   0.489
+## 3   0.621
+## 4   0.788
+## 5   1</code></pre>
+<p><br></p>
+</div>
+<div id="tuning-using-cross-validation-and-the-tune_grid-function-1" class="section level3">
+<h3>4. Tuning Using Cross-Validation and the <code>tune_grid()</code> function</h3>
+<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co">#tune the model with previously specified cross-validation and RMSE as target metric</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>lasso_res <span class="ot">&lt;-</span> lasso_wflow <span class="sc">%&gt;%</span></span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>                tune<span class="sc">::</span><span class="fu">tune_grid</span>(<span class="at">resamples =</span> folds,</span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>                                <span class="at">grid =</span> lasso_grid,</span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>                                <span class="at">control =</span> <span class="fu">control_grid</span>(<span class="at">verbose =</span> <span class="cn">TRUE</span>, </span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>                                                       <span class="at">save_pred =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>                                <span class="at">metrics =</span> <span class="fu">metric_set</span>(rmse))</span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a><span class="co">#look at 15 models with lowest RMSEs</span></span>
+<span id="cb43-10"><a href="#cb43-10" aria-hidden="true" tabindex="-1"></a>top_lasso_models <span class="ot">&lt;-</span> lasso_res <span class="sc">%&gt;%</span></span>
+<span id="cb43-11"><a href="#cb43-11" aria-hidden="true" tabindex="-1"></a>                      tune<span class="sc">::</span><span class="fu">show_best</span>(<span class="st">&quot;rmse&quot;</span>, <span class="at">n =</span> <span class="dv">15</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb43-12"><a href="#cb43-12" aria-hidden="true" tabindex="-1"></a>                      dplyr<span class="sc">::</span><span class="fu">arrange</span>(penalty)</span>
+<span id="cb43-13"><a href="#cb43-13" aria-hidden="true" tabindex="-1"></a>top_lasso_models</span></code></pre></div>
+<pre><code>## # A tibble: 15 x 7
+##    penalty .metric .estimator  mean     n std_err .config              
+##      &lt;dbl&gt; &lt;chr&gt;   &lt;chr&gt;      &lt;dbl&gt; &lt;int&gt;   &lt;dbl&gt; &lt;chr&gt;                
+##  1 0.00530 rmse    standard    1.17    25  0.0167 Preprocessor1_Model08
+##  2 0.00672 rmse    standard    1.17    25  0.0167 Preprocessor1_Model09
+##  3 0.00853 rmse    standard    1.17    25  0.0167 Preprocessor1_Model10
+##  4 0.0108  rmse    standard    1.17    25  0.0167 Preprocessor1_Model11
+##  5 0.0137  rmse    standard    1.16    25  0.0167 Preprocessor1_Model12
+##  6 0.0174  rmse    standard    1.16    25  0.0167 Preprocessor1_Model13
+##  7 0.0221  rmse    standard    1.16    25  0.0168 Preprocessor1_Model14
+##  8 0.0281  rmse    standard    1.16    25  0.0169 Preprocessor1_Model15
+##  9 0.0356  rmse    standard    1.15    25  0.0169 Preprocessor1_Model16
+## 10 0.0452  rmse    standard    1.15    25  0.0169 Preprocessor1_Model17
+## 11 0.0574  rmse    standard    1.15    25  0.0169 Preprocessor1_Model18
+## 12 0.0728  rmse    standard    1.15    25  0.0170 Preprocessor1_Model19
+## 13 0.0924  rmse    standard    1.16    25  0.0172 Preprocessor1_Model20
+## 14 0.117   rmse    standard    1.16    25  0.0175 Preprocessor1_Model21
+## 15 0.149   rmse    standard    1.17    25  0.0178 Preprocessor1_Model22</code></pre>
+<div class="sourceCode" id="cb45"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="co">#default visualization</span></span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>lasso_res <span class="sc">%&gt;%</span> <span class="fu">autoplot</span>()</span></code></pre></div>
+<p><img src="ml_analysis_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+<div class="sourceCode" id="cb46"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="co">#create a graph to see when there is a significant change in the penalty</span></span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a><span class="co">#this is the same as above, just a little more detail</span></span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>lasso_res <span class="sc">%&gt;%</span></span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>  workflowsets<span class="sc">::</span><span class="fu">collect_metrics</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a>  ggplot2<span class="sc">::</span><span class="fu">ggplot</span>(<span class="fu">aes</span>(penalty, mean, <span class="at">color =</span> .metric)) <span class="sc">+</span></span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a>  ggplot2<span class="sc">::</span><span class="fu">geom_errorbar</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> mean <span class="sc">-</span> std_err,</span>
+<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a>                             <span class="at">ymax =</span> mean <span class="sc">+</span> std_err),</span>
+<span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a>                         <span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb46-9"><a href="#cb46-9" aria-hidden="true" tabindex="-1"></a>  ggplot2<span class="sc">::</span><span class="fu">geom_line</span>(<span class="at">size =</span> <span class="fl">1.5</span>) <span class="sc">+</span></span>
+<span id="cb46-10"><a href="#cb46-10" aria-hidden="true" tabindex="-1"></a>  ggplot2<span class="sc">::</span><span class="fu">scale_x_log10</span>()</span></code></pre></div>
+<p><img src="ml_analysis_files/figure-html/unnamed-chunk-12-2.png" width="672" /></p>
+<p><br></p>
+</div>
+<div id="identify-best-model-1" class="section level3">
+<h3>5. Identify Best Model</h3>
+<div class="sourceCode" id="cb47"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="co">#select the lasso model with the lowest rmse</span></span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>lasso_lowest_rmse <span class="ot">&lt;-</span> lasso_res <span class="sc">%&gt;%</span></span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>                        tune<span class="sc">::</span><span class="fu">select_best</span>(<span class="st">&quot;rmse&quot;</span>)</span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a><span class="co">#finalize the workflow by using the selected lasso model</span></span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a>best_lasso_wflow <span class="ot">&lt;-</span> lasso_wflow <span class="sc">%&gt;%</span></span>
+<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a>                      tune<span class="sc">::</span><span class="fu">finalize_workflow</span>(lasso_lowest_rmse)</span>
+<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a>best_lasso_wflow</span></code></pre></div>
+<pre><code>## == Workflow ====================================================================
+## Preprocessor: Recipe
+## Model: linear_reg()
+## 
+## -- Preprocessor ----------------------------------------------------------------
+## 1 Recipe Step
+## 
+## * step_dummy()
+## 
+## -- Model -----------------------------------------------------------------------
+## Linear Regression Model Specification (regression)
+## 
+## Main Arguments:
+##   penalty = 0.0573615251044868
+##   mixture = 1
+## 
+## Computational engine: glmnet</code></pre>
+<div class="sourceCode" id="cb49"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="co">#one last fit on the training data</span></span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>best_lasso_fit <span class="ot">&lt;-</span> best_lasso_wflow <span class="sc">%&gt;%</span></span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>                    parsnip<span class="sc">::</span><span class="fu">fit</span>(<span class="at">data =</span> train_data)</span>
+<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a><span class="co">#create a table of model fit that includes the predictors in the model</span></span>
+<span id="cb49-6"><a href="#cb49-6" aria-hidden="true" tabindex="-1"></a><span class="co">#i.e. include all non-zero estimates</span></span>
+<span id="cb49-7"><a href="#cb49-7" aria-hidden="true" tabindex="-1"></a>lasso_tibble <span class="ot">&lt;-</span> best_lasso_fit <span class="sc">%&gt;%</span></span>
+<span id="cb49-8"><a href="#cb49-8" aria-hidden="true" tabindex="-1"></a>                    workflowsets<span class="sc">::</span><span class="fu">extract_fit_parsnip</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb49-9"><a href="#cb49-9" aria-hidden="true" tabindex="-1"></a>                    broom<span class="sc">::</span><span class="fu">tidy</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb49-10"><a href="#cb49-10" aria-hidden="true" tabindex="-1"></a>                    dplyr<span class="sc">::</span><span class="fu">filter</span>(estimate <span class="sc">!=</span> <span class="dv">0</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb49-11"><a href="#cb49-11" aria-hidden="true" tabindex="-1"></a>                    dplyr<span class="sc">::</span><span class="fu">mutate_if</span>(is.numeric, round, <span class="dv">4</span>)</span>
+<span id="cb49-12"><a href="#cb49-12" aria-hidden="true" tabindex="-1"></a>lasso_tibble</span></code></pre></div>
+<pre><code>## # A tibble: 13 x 3
+##    term                estimate penalty
+##    &lt;chr&gt;                  &lt;dbl&gt;   &lt;dbl&gt;
+##  1 (Intercept)          98.7     0.0574
+##  2 ChestCongestion_Yes   0.0332  0.0574
+##  3 ChillsSweats_Yes      0.0894  0.0574
+##  4 NasalCongestion_Yes  -0.140   0.0574
+##  5 Sneeze_Yes           -0.391   0.0574
+##  6 Fatigue_Yes           0.178   0.0574
+##  7 SubjectiveFever_Yes   0.378   0.0574
+##  8 Weakness_1            0.178   0.0574
+##  9 Myalgia_2            -0.0099  0.0574
+## 10 Myalgia_3             0.0679  0.0574
+## 11 RunnyNose_Yes        -0.0825  0.0574
+## 12 Nausea_Yes            0.0035  0.0574
+## 13 Pharyngitis_Yes       0.148   0.0574</code></pre>
+<p><br></p>
+</div>
+<div id="model-evaluation-1" class="section level3">
+<h3>6. Model evaluation</h3>
+<div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="co">#extract model from final fit</span></span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>x_lasso <span class="ot">&lt;-</span> best_lasso_fit<span class="sc">$</span>fit<span class="sc">$</span>fit<span class="sc">$</span>fit</span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a><span class="co">#plot how number of predictors included in LASSO model changes with the tuning parameter</span></span>
+<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(x_lasso, <span class="st">&quot;lambda&quot;</span>)</span></code></pre></div>
+<p><img src="ml_analysis_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+<div class="sourceCode" id="cb52"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="co">#the larger the regularization penalty, the fewer the predictors in the model</span></span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a><span class="co">#find predictions and intervals</span></span>
+<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a>lasso_resid <span class="ot">&lt;-</span> best_lasso_fit <span class="sc">%&gt;%</span></span>
+<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a>                  broom.mixed<span class="sc">::</span><span class="fu">augment</span>(<span class="at">new_data =</span> train_data) <span class="sc">%&gt;%</span></span>
+<span id="cb52-6"><a href="#cb52-6" aria-hidden="true" tabindex="-1"></a>                  dplyr<span class="sc">::</span><span class="fu">select</span>(.pred, BodyTemp) <span class="sc">%&gt;%</span></span>
+<span id="cb52-7"><a href="#cb52-7" aria-hidden="true" tabindex="-1"></a>                  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">.resid =</span> .pred <span class="sc">-</span> BodyTemp)</span>
+<span id="cb52-8"><a href="#cb52-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-9"><a href="#cb52-9" aria-hidden="true" tabindex="-1"></a><span class="co">#plot model predictions from tuned model versus actual outcomes</span></span>
+<span id="cb52-10"><a href="#cb52-10" aria-hidden="true" tabindex="-1"></a><span class="co">#geom_abline plots a 45 degree line along which the results should fall</span></span>
+<span id="cb52-11"><a href="#cb52-11" aria-hidden="true" tabindex="-1"></a>ggplot2<span class="sc">::</span><span class="fu">ggplot</span>(lasso_resid, <span class="fu">aes</span>(<span class="at">x =</span> .pred, <span class="at">y =</span> BodyTemp)) <span class="sc">+</span></span>
+<span id="cb52-12"><a href="#cb52-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_abline</span>(<span class="at">slope =</span> <span class="dv">1</span>, <span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">color =</span> <span class="st">&quot;red&quot;</span>, <span class="at">lty =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb52-13"><a href="#cb52-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb52-14"><a href="#cb52-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlim</span>(<span class="dv">97</span>, <span class="dv">104</span>) <span class="sc">+</span> </span>
+<span id="cb52-15"><a href="#cb52-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylim</span>(<span class="dv">97</span>, <span class="dv">104</span>) <span class="sc">+</span></span>
+<span id="cb52-16"><a href="#cb52-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;LASSO fit: Predicted vs. Actual Body Temperature&quot;</span>,</span>
+<span id="cb52-17"><a href="#cb52-17" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">&quot;Actual Body Temperature (F)&quot;</span>,</span>
+<span id="cb52-18"><a href="#cb52-18" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">&quot;Predicted Body Temperature (F)&quot;</span>)</span></code></pre></div>
+<p><img src="ml_analysis_files/figure-html/unnamed-chunk-14-2.png" width="672" /></p>
+<div class="sourceCode" id="cb53"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="co">#plot model with residuals</span></span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a><span class="co">#the geom_hline plots a straight horizontal line along which the results should fall</span></span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>ggplot2<span class="sc">::</span><span class="fu">ggplot</span>(lasso_resid, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">as.numeric</span>(<span class="fu">row.names</span>(lasso_resid)), <span class="at">y =</span> .resid))<span class="sc">+</span></span>
+<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">color =</span> <span class="st">&quot;red&quot;</span>, <span class="at">lty =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;LASSO Fit: Residuals&quot;</span>,</span>
+<span id="cb53-7"><a href="#cb53-7" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">&quot;Observation Number&quot;</span>,</span>
+<span id="cb53-8"><a href="#cb53-8" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">&quot;Residual&quot;</span>)</span></code></pre></div>
+<p><img src="ml_analysis_files/figure-html/unnamed-chunk-14-3.png" width="672" /></p>
+<div class="sourceCode" id="cb54"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="co">#plot model fit vs residuals</span></span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a><span class="co">#the geom_hline plots a straight horizontal line along which the results fall</span></span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>ggplot2<span class="sc">::</span><span class="fu">ggplot</span>(lasso_resid, <span class="fu">aes</span>(<span class="at">x =</span> .pred, <span class="at">y =</span> .resid))<span class="sc">+</span></span>
+<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">color =</span> <span class="st">&quot;red&quot;</span>, <span class="at">lty =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb54-6"><a href="#cb54-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlim</span>(<span class="dv">97</span>, <span class="dv">104</span>) <span class="sc">+</span></span>
+<span id="cb54-7"><a href="#cb54-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;LASSO Fit: Residuals vs Fitted Body Temperature&quot;</span>,</span>
+<span id="cb54-8"><a href="#cb54-8" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">&quot;Fitted Body Temperature (F)&quot;</span>,</span>
+<span id="cb54-9"><a href="#cb54-9" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">&quot;Residual&quot;</span>)</span></code></pre></div>
+<p><img src="ml_analysis_files/figure-html/unnamed-chunk-14-4.png" width="672" /></p>
+<div class="sourceCode" id="cb55"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="co">#print the 10 best performing hyperparameter sets</span></span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>lasso_res <span class="sc">%&gt;%</span></span>
+<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>  tune<span class="sc">::</span><span class="fu">show_best</span>(<span class="at">n =</span> <span class="dv">10</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="at">rmse =</span> mean, std_err, penalty) <span class="sc">%&gt;%</span></span>
+<span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">rmse =</span> <span class="fu">round</span>(rmse, <span class="dv">3</span>),</span>
+<span id="cb55-6"><a href="#cb55-6" aria-hidden="true" tabindex="-1"></a>                <span class="at">std_err =</span> <span class="fu">round</span>(std_err, <span class="dv">4</span>),</span>
+<span id="cb55-7"><a href="#cb55-7" aria-hidden="true" tabindex="-1"></a>                <span class="st">`</span><span class="at">log penalty</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">log</span>(penalty), <span class="dv">3</span>),</span>
+<span id="cb55-8"><a href="#cb55-8" aria-hidden="true" tabindex="-1"></a>                <span class="at">.keep =</span> <span class="st">&quot;unused&quot;</span>)</span></code></pre></div>
+<pre><code>## # A tibble: 10 x 3
+##     rmse std_err `log penalty`
+##    &lt;dbl&gt;   &lt;dbl&gt;         &lt;dbl&gt;
+##  1  1.15  0.0169         -2.86
+##  2  1.15  0.0169         -3.10
+##  3  1.15  0.017          -2.62
+##  4  1.16  0.0169         -3.34
+##  5  1.16  0.0169         -3.57
+##  6  1.16  0.0172         -2.38
+##  7  1.16  0.0168         -3.81
+##  8  1.16  0.0167         -4.05
+##  9  1.16  0.0175         -2.14
+## 10  1.16  0.0167         -4.29</code></pre>
+<div class="sourceCode" id="cb57"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="co">#print best model performance</span></span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>lasso_performance <span class="ot">&lt;-</span> lasso_res <span class="sc">%&gt;%</span> tune<span class="sc">::</span><span class="fu">show_best</span>(<span class="at">n =</span> <span class="dv">1</span>)</span>
+<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a>lasso_performance</span></code></pre></div>
+<pre><code>## # A tibble: 1 x 7
+##   penalty .metric .estimator  mean     n std_err .config              
+##     &lt;dbl&gt; &lt;chr&gt;   &lt;chr&gt;      &lt;dbl&gt; &lt;int&gt;   &lt;dbl&gt; &lt;chr&gt;                
+## 1  0.0574 rmse    standard    1.15    25  0.0169 Preprocessor1_Model18</code></pre>
+<div class="sourceCode" id="cb59"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="co">#compare model performance to null model and tree model</span></span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a>lasso_RMSE <span class="ot">&lt;-</span> lasso_res <span class="sc">%&gt;%</span></span>
+<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a>                tune<span class="sc">::</span><span class="fu">show_best</span>(<span class="at">n =</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a>                dplyr<span class="sc">::</span><span class="fu">transmute</span>(</span>
+<span id="cb59-5"><a href="#cb59-5" aria-hidden="true" tabindex="-1"></a>                  <span class="at">rmse =</span> <span class="fu">round</span>(mean, <span class="dv">3</span>),</span>
+<span id="cb59-6"><a href="#cb59-6" aria-hidden="true" tabindex="-1"></a>                  <span class="at">SE =</span> <span class="fu">round</span>(std_err, <span class="dv">4</span>),</span>
+<span id="cb59-7"><a href="#cb59-7" aria-hidden="true" tabindex="-1"></a>                  <span class="at">model =</span> <span class="st">&quot;LASSO&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb59-8"><a href="#cb59-8" aria-hidden="true" tabindex="-1"></a>               dplyr<span class="sc">::</span><span class="fu">bind_rows</span>(tree_RMSE)</span>
+<span id="cb59-9"><a href="#cb59-9" aria-hidden="true" tabindex="-1"></a>lasso_RMSE</span></code></pre></div>
+<pre><code>## # A tibble: 3 x 3
+##    rmse     SE model       
+##   &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;       
+## 1  1.15 0.0169 LASSO       
+## 2  1.19 0.0181 Tree        
+## 3  1.21 0      Null - Train</code></pre>
+<p>In examining the results of the model, there is an improvement of the target metric (RMSE) under the LASSO model. However, the residual plots and observed vs fitted plots suggest the fit still isn’t ideal. Time to try one last model!</p>
+<p><br></p>
+<hr />
+<p><br></p>
+</div>
+</div>
+<div id="random-forest-model" class="section level2">
+<h2>Random Forest Model</h2>
+<p>Most of the code for this section comes from the <a href="https://www.tidymodels.org/start/case-study/">TidyModels Tutorial Case Study</a>.</p>
+<p><br></p>
+<div id="model-specification-2" class="section level3">
+<h3>1. Model Specification</h3>
+<div class="sourceCode" id="cb61"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a><span class="co">#run parallels to determine number of cores</span></span>
+<span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a>cores <span class="ot">&lt;-</span> parallel<span class="sc">::</span><span class="fu">detectCores</span>() <span class="sc">-</span> <span class="dv">1</span></span>
+<span id="cb61-3"><a href="#cb61-3" aria-hidden="true" tabindex="-1"></a>cores</span></code></pre></div>
+<pre><code>## [1] 19</code></pre>
+<div class="sourceCode" id="cb63"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a>cl <span class="ot">&lt;-</span> <span class="fu">makeCluster</span>(cores)</span>
+<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a><span class="fu">registerDoParallel</span>(cl)</span>
+<span id="cb63-4"><a href="#cb63-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb63-5"><a href="#cb63-5" aria-hidden="true" tabindex="-1"></a><span class="co">#define the RF model</span></span>
+<span id="cb63-6"><a href="#cb63-6" aria-hidden="true" tabindex="-1"></a>RF_mod <span class="ot">&lt;-</span></span>
+<span id="cb63-7"><a href="#cb63-7" aria-hidden="true" tabindex="-1"></a>  parsnip<span class="sc">::</span><span class="fu">rand_forest</span>(<span class="at">mtry =</span> <span class="fu">tune</span>(),</span>
+<span id="cb63-8"><a href="#cb63-8" aria-hidden="true" tabindex="-1"></a>                       <span class="at">min_n =</span> <span class="fu">tune</span>(),</span>
+<span id="cb63-9"><a href="#cb63-9" aria-hidden="true" tabindex="-1"></a>                       <span class="at">trees =</span> <span class="fu">tune</span>()) <span class="sc">%&gt;%</span></span>
+<span id="cb63-10"><a href="#cb63-10" aria-hidden="true" tabindex="-1"></a>  parsnip<span class="sc">::</span><span class="fu">set_engine</span>(<span class="st">&quot;ranger&quot;</span>,</span>
+<span id="cb63-11"><a href="#cb63-11" aria-hidden="true" tabindex="-1"></a>                      <span class="at">importance =</span> <span class="st">&quot;permutation&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb63-12"><a href="#cb63-12" aria-hidden="true" tabindex="-1"></a>  parsnip<span class="sc">::</span><span class="fu">set_mode</span>(<span class="st">&quot;regression&quot;</span>)</span>
+<span id="cb63-13"><a href="#cb63-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb63-14"><a href="#cb63-14" aria-hidden="true" tabindex="-1"></a><span class="co">#use the recipe specified earlier (line 133)</span></span>
+<span id="cb63-15"><a href="#cb63-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb63-16"><a href="#cb63-16" aria-hidden="true" tabindex="-1"></a><span class="co">#check to make sure identified parameters will be tuned</span></span>
+<span id="cb63-17"><a href="#cb63-17" aria-hidden="true" tabindex="-1"></a>RF_mod <span class="sc">%&gt;%</span> tune<span class="sc">::</span><span class="fu">parameters</span>()</span></code></pre></div>
+<pre><code>## Collection of 3 parameters for tuning
+## 
+##  identifier  type    object
+##        mtry  mtry nparam[?]
+##       trees trees nparam[+]
+##       min_n min_n nparam[+]
+## 
+## Model parameters needing finalization:
+##    # Randomly Selected Predictors (&#39;mtry&#39;)
+## 
+## See `?dials::finalize` or `?dials::update.parameters` for more information.</code></pre>
+<p><br></p>
+</div>
+<div id="workflow-definition-2" class="section level3">
+<h3>2. Workflow Definition</h3>
+<div class="sourceCode" id="cb65"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a><span class="co">#define workflow for RF regression</span></span>
+<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>RF_wflow <span class="ot">&lt;-</span> workflows<span class="sc">::</span><span class="fu">workflow</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb65-3"><a href="#cb65-3" aria-hidden="true" tabindex="-1"></a>               workflows<span class="sc">::</span><span class="fu">add_model</span>(RF_mod) <span class="sc">%&gt;%</span></span>
+<span id="cb65-4"><a href="#cb65-4" aria-hidden="true" tabindex="-1"></a>               workflows<span class="sc">::</span><span class="fu">add_recipe</span>(flu_rec)</span></code></pre></div>
+<p><br></p>
+</div>
+<div id="tuning-grid-specification-2" class="section level3">
+<h3>3. Tuning Grid Specification</h3>
+<div class="sourceCode" id="cb66"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="co">#tuning grid specification</span></span>
+<span id="cb66-2"><a href="#cb66-2" aria-hidden="true" tabindex="-1"></a>RF_grid <span class="ot">&lt;-</span> <span class="fu">expand.grid</span>(<span class="at">mtry =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">5</span>, <span class="dv">6</span>),</span>
+<span id="cb66-3"><a href="#cb66-3" aria-hidden="true" tabindex="-1"></a>                       <span class="at">min_n =</span> <span class="fu">c</span>(<span class="dv">40</span>, <span class="dv">50</span>, <span class="dv">60</span>),</span>
+<span id="cb66-4"><a href="#cb66-4" aria-hidden="true" tabindex="-1"></a>                       <span class="at">trees =</span> <span class="fu">c</span>(<span class="dv">500</span>,<span class="dv">1000</span>))</span></code></pre></div>
+<p><br></p>
+</div>
+<div id="tuning-using-cross-validation-and-the-tune_grid-function-2" class="section level3">
+<h3>4. Tuning Using Cross-Validation and the <code>tune_grid()</code> function</h3>
+<div class="sourceCode" id="cb67"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a><span class="co">#tune the model with previously specified cross-validation and RMSE as target metric</span></span>
+<span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a>RF_res <span class="ot">&lt;-</span> RF_wflow <span class="sc">%&gt;%</span></span>
+<span id="cb67-3"><a href="#cb67-3" aria-hidden="true" tabindex="-1"></a>              tune<span class="sc">::</span><span class="fu">tune_grid</span>(<span class="at">resamples =</span> folds,</span>
+<span id="cb67-4"><a href="#cb67-4" aria-hidden="true" tabindex="-1"></a>                              <span class="at">grid =</span> RF_grid,</span>
+<span id="cb67-5"><a href="#cb67-5" aria-hidden="true" tabindex="-1"></a>                              <span class="at">control =</span> <span class="fu">control_grid</span>(<span class="at">verbose =</span> <span class="cn">TRUE</span>, <span class="at">save_pred =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb67-6"><a href="#cb67-6" aria-hidden="true" tabindex="-1"></a>                              <span class="at">metrics =</span> <span class="fu">metric_set</span>(rmse))</span>
+<span id="cb67-7"><a href="#cb67-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-8"><a href="#cb67-8" aria-hidden="true" tabindex="-1"></a><span class="co">#look at top 5 RF models</span></span>
+<span id="cb67-9"><a href="#cb67-9" aria-hidden="true" tabindex="-1"></a>top_RF_models <span class="ot">&lt;-</span> RF_res <span class="sc">%&gt;%</span></span>
+<span id="cb67-10"><a href="#cb67-10" aria-hidden="true" tabindex="-1"></a>                    tune<span class="sc">::</span><span class="fu">show_best</span>(<span class="st">&quot;rmse&quot;</span>, <span class="at">n =</span> <span class="dv">5</span>)</span>
+<span id="cb67-11"><a href="#cb67-11" aria-hidden="true" tabindex="-1"></a>top_RF_models</span></code></pre></div>
+<pre><code>## # A tibble: 5 x 9
+##    mtry trees min_n .metric .estimator  mean     n std_err .config              
+##   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;   &lt;chr&gt;      &lt;dbl&gt; &lt;int&gt;   &lt;dbl&gt; &lt;chr&gt;                
+## 1     6  1000    60 rmse    standard    1.16    25  0.0168 Preprocessor1_Model24
+## 2     6   500    60 rmse    standard    1.16    25  0.0170 Preprocessor1_Model12
+## 3     6  1000    50 rmse    standard    1.16    25  0.0167 Preprocessor1_Model20
+## 4     5  1000    60 rmse    standard    1.16    25  0.0168 Preprocessor1_Model23
+## 5     5   500    60 rmse    standard    1.16    25  0.0166 Preprocessor1_Model11</code></pre>
+<div class="sourceCode" id="cb69"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a><span class="co">#default visualization</span></span>
+<span id="cb69-2"><a href="#cb69-2" aria-hidden="true" tabindex="-1"></a>RF_res <span class="sc">%&gt;%</span> <span class="fu">autoplot</span>()</span></code></pre></div>
+<p><img src="ml_analysis_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
+<div class="sourceCode" id="cb70"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a><span class="co">#in future analyses, might be worth more tuning with a higher minimum node size</span></span></code></pre></div>
+<p><br></p>
+</div>
+<div id="identify-best-model-2" class="section level3">
+<h3>5. Identify Best Model</h3>
+<div class="sourceCode" id="cb71"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a><span class="co">#select the RF model with the lowest rmse</span></span>
+<span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a>RF_lowest_rmse <span class="ot">&lt;-</span> RF_res <span class="sc">%&gt;%</span></span>
+<span id="cb71-3"><a href="#cb71-3" aria-hidden="true" tabindex="-1"></a>                      tune<span class="sc">::</span><span class="fu">select_best</span>(<span class="st">&quot;rmse&quot;</span>)</span>
+<span id="cb71-4"><a href="#cb71-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb71-5"><a href="#cb71-5" aria-hidden="true" tabindex="-1"></a><span class="co">#finalize the workflow by using the selected RF model</span></span>
+<span id="cb71-6"><a href="#cb71-6" aria-hidden="true" tabindex="-1"></a>best_RF_wflow <span class="ot">&lt;-</span> RF_wflow <span class="sc">%&gt;%</span></span>
+<span id="cb71-7"><a href="#cb71-7" aria-hidden="true" tabindex="-1"></a>                      tune<span class="sc">::</span><span class="fu">finalize_workflow</span>(RF_lowest_rmse)</span>
+<span id="cb71-8"><a href="#cb71-8" aria-hidden="true" tabindex="-1"></a>best_RF_wflow</span></code></pre></div>
+<pre><code>## == Workflow ====================================================================
+## Preprocessor: Recipe
+## Model: rand_forest()
+## 
+## -- Preprocessor ----------------------------------------------------------------
+## 1 Recipe Step
+## 
+## * step_dummy()
+## 
+## -- Model -----------------------------------------------------------------------
+## Random Forest Model Specification (regression)
+## 
+## Main Arguments:
+##   mtry = 6
+##   trees = 1000
+##   min_n = 60
+## 
+## Engine-Specific Arguments:
+##   importance = permutation
+## 
+## Computational engine: ranger</code></pre>
+<div class="sourceCode" id="cb73"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a><span class="co">#one last fit on the training data</span></span>
+<span id="cb73-2"><a href="#cb73-2" aria-hidden="true" tabindex="-1"></a>best_RF_fit <span class="ot">&lt;-</span> best_RF_wflow <span class="sc">%&gt;%</span></span>
+<span id="cb73-3"><a href="#cb73-3" aria-hidden="true" tabindex="-1"></a>                    parsnip<span class="sc">::</span><span class="fu">fit</span>(<span class="at">data =</span> train_data)</span></code></pre></div>
+<p><br></p>
+</div>
+<div id="model-evaluation-2" class="section level3">
+<h3>6. Model evaluation</h3>
+<div class="sourceCode" id="cb74"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a><span class="co">#extract model from final fit</span></span>
+<span id="cb74-2"><a href="#cb74-2" aria-hidden="true" tabindex="-1"></a>x_RF <span class="ot">&lt;-</span> best_RF_fit<span class="sc">$</span>fit<span class="sc">$</span>fit<span class="sc">$</span>fit</span>
+<span id="cb74-3"><a href="#cb74-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb74-4"><a href="#cb74-4" aria-hidden="true" tabindex="-1"></a><span class="co">#plot most important predictors in the model</span></span>
+<span id="cb74-5"><a href="#cb74-5" aria-hidden="true" tabindex="-1"></a>vip<span class="sc">::</span><span class="fu">vip</span>(x_RF, <span class="at">num_features =</span> <span class="dv">20</span>)</span></code></pre></div>
+<p><img src="ml_analysis_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
+<div class="sourceCode" id="cb75"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="co">#makes sense subjective fever is the most important variable in predicting actual fever</span></span>
+<span id="cb75-2"><a href="#cb75-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb75-3"><a href="#cb75-3" aria-hidden="true" tabindex="-1"></a><span class="co">#find predictions and intervals</span></span>
+<span id="cb75-4"><a href="#cb75-4" aria-hidden="true" tabindex="-1"></a>RF_resid <span class="ot">&lt;-</span> best_RF_fit <span class="sc">%&gt;%</span></span>
+<span id="cb75-5"><a href="#cb75-5" aria-hidden="true" tabindex="-1"></a>                broom.mixed<span class="sc">::</span><span class="fu">augment</span>(<span class="at">new_data =</span> train_data) <span class="sc">%&gt;%</span></span>
+<span id="cb75-6"><a href="#cb75-6" aria-hidden="true" tabindex="-1"></a>                dplyr<span class="sc">::</span><span class="fu">select</span>(.pred, BodyTemp) <span class="sc">%&gt;%</span></span>
+<span id="cb75-7"><a href="#cb75-7" aria-hidden="true" tabindex="-1"></a>                dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">.resid =</span> .pred <span class="sc">-</span> BodyTemp)</span>
+<span id="cb75-8"><a href="#cb75-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb75-9"><a href="#cb75-9" aria-hidden="true" tabindex="-1"></a><span class="co">#plot model predictions from tuned model versus actual outcomes</span></span>
+<span id="cb75-10"><a href="#cb75-10" aria-hidden="true" tabindex="-1"></a><span class="co">#geom_abline is a 45 degree line, along which the results should fall</span></span>
+<span id="cb75-11"><a href="#cb75-11" aria-hidden="true" tabindex="-1"></a>ggplot2<span class="sc">::</span><span class="fu">ggplot</span>(RF_resid, <span class="fu">aes</span>(<span class="at">x =</span> .pred, <span class="at">y =</span> BodyTemp)) <span class="sc">+</span></span>
+<span id="cb75-12"><a href="#cb75-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_abline</span>(<span class="at">slope =</span> <span class="dv">1</span>, <span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">color =</span> <span class="st">&quot;red&quot;</span>, <span class="at">lty =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb75-13"><a href="#cb75-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb75-14"><a href="#cb75-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlim</span>(<span class="dv">97</span>, <span class="dv">104</span>) <span class="sc">+</span></span>
+<span id="cb75-15"><a href="#cb75-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylim</span>(<span class="dv">97</span>, <span class="dv">104</span>) <span class="sc">+</span></span>
+<span id="cb75-16"><a href="#cb75-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;RF Fit: Actual vs. Predicted Body Temperature&quot;</span>,</span>
+<span id="cb75-17"><a href="#cb75-17" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">&quot;Predicted Body Temperature (F)&quot;</span>,</span>
+<span id="cb75-18"><a href="#cb75-18" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">&quot;Actual Body Temperature (F)&quot;</span>)</span></code></pre></div>
+<p><img src="ml_analysis_files/figure-html/unnamed-chunk-20-2.png" width="672" /></p>
+<div class="sourceCode" id="cb76"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a><span class="co">#plot model with residuals</span></span>
+<span id="cb76-2"><a href="#cb76-2" aria-hidden="true" tabindex="-1"></a><span class="co">#the geom_hline plots a straight horizontal line along which the results should fall</span></span>
+<span id="cb76-3"><a href="#cb76-3" aria-hidden="true" tabindex="-1"></a>ggplot2<span class="sc">::</span><span class="fu">ggplot</span>(RF_resid, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">as.numeric</span>(<span class="fu">row.names</span>(RF_resid)), <span class="at">y =</span> .resid))<span class="sc">+</span></span>
+<span id="cb76-4"><a href="#cb76-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">color =</span> <span class="st">&quot;red&quot;</span>, <span class="at">lty =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb76-5"><a href="#cb76-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb76-6"><a href="#cb76-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;RF Fit: Residuals&quot;</span>,</span>
+<span id="cb76-7"><a href="#cb76-7" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">&quot;Observation Number&quot;</span>,</span>
+<span id="cb76-8"><a href="#cb76-8" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">&quot;Residual&quot;</span>)</span></code></pre></div>
+<p><img src="ml_analysis_files/figure-html/unnamed-chunk-20-3.png" width="672" /></p>
+<div class="sourceCode" id="cb77"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a><span class="co">#plot model fit vs residuals</span></span>
+<span id="cb77-2"><a href="#cb77-2" aria-hidden="true" tabindex="-1"></a><span class="co">#the geom_hline plots a straight horizontal line along which the results fall</span></span>
+<span id="cb77-3"><a href="#cb77-3" aria-hidden="true" tabindex="-1"></a>ggplot2<span class="sc">::</span><span class="fu">ggplot</span>(RF_resid, <span class="fu">aes</span>(<span class="at">x =</span> .pred, <span class="at">y =</span> .resid))<span class="sc">+</span></span>
+<span id="cb77-4"><a href="#cb77-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">color =</span> <span class="st">&quot;red&quot;</span>, <span class="at">lty =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb77-5"><a href="#cb77-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb77-6"><a href="#cb77-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlim</span>(<span class="dv">97</span>, <span class="dv">104</span>) <span class="sc">+</span></span>
+<span id="cb77-7"><a href="#cb77-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;LASSO Fit: Residuals vs Fitted Body Temperature&quot;</span>,</span>
+<span id="cb77-8"><a href="#cb77-8" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">&quot;Fitted Body Temperature (F)&quot;</span>,</span>
+<span id="cb77-9"><a href="#cb77-9" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">&quot;Residual&quot;</span>)</span></code></pre></div>
+<p><img src="ml_analysis_files/figure-html/unnamed-chunk-20-4.png" width="672" /></p>
+<div class="sourceCode" id="cb78"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true" tabindex="-1"></a><span class="co">#print the 10 best performing hyperparameter sets</span></span>
+<span id="cb78-2"><a href="#cb78-2" aria-hidden="true" tabindex="-1"></a>RF_res <span class="sc">%&gt;%</span></span>
+<span id="cb78-3"><a href="#cb78-3" aria-hidden="true" tabindex="-1"></a>  tune<span class="sc">::</span><span class="fu">show_best</span>(<span class="at">n =</span> <span class="dv">10</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb78-4"><a href="#cb78-4" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="at">rmse =</span> mean, std_err) <span class="sc">%&gt;%</span></span>
+<span id="cb78-5"><a href="#cb78-5" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">rmse =</span> <span class="fu">round</span>(rmse, <span class="dv">3</span>),</span>
+<span id="cb78-6"><a href="#cb78-6" aria-hidden="true" tabindex="-1"></a>                <span class="at">std_err =</span> <span class="fu">round</span>(std_err, <span class="dv">4</span>),</span>
+<span id="cb78-7"><a href="#cb78-7" aria-hidden="true" tabindex="-1"></a>                <span class="at">.keep =</span> <span class="st">&quot;unused&quot;</span>)</span></code></pre></div>
+<pre><code>## # A tibble: 10 x 2
+##     rmse std_err
+##    &lt;dbl&gt;   &lt;dbl&gt;
+##  1  1.16  0.0168
+##  2  1.16  0.017 
+##  3  1.16  0.0167
+##  4  1.16  0.0168
+##  5  1.16  0.0166
+##  6  1.16  0.0167
+##  7  1.16  0.0169
+##  8  1.16  0.0166
+##  9  1.16  0.0167
+## 10  1.16  0.0166</code></pre>
+<div class="sourceCode" id="cb80"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb80-1"><a href="#cb80-1" aria-hidden="true" tabindex="-1"></a><span class="co">#print the best model</span></span>
+<span id="cb80-2"><a href="#cb80-2" aria-hidden="true" tabindex="-1"></a>RF_performance <span class="ot">&lt;-</span> RF_res <span class="sc">%&gt;%</span> tune<span class="sc">::</span><span class="fu">show_best</span>(<span class="at">n =</span> <span class="dv">1</span>)</span>
+<span id="cb80-3"><a href="#cb80-3" aria-hidden="true" tabindex="-1"></a>RF_performance</span></code></pre></div>
+<pre><code>## # A tibble: 1 x 9
+##    mtry trees min_n .metric .estimator  mean     n std_err .config              
+##   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;   &lt;chr&gt;      &lt;dbl&gt; &lt;int&gt;   &lt;dbl&gt; &lt;chr&gt;                
+## 1     6  1000    60 rmse    standard    1.16    25  0.0168 Preprocessor1_Model24</code></pre>
+<div class="sourceCode" id="cb82"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true" tabindex="-1"></a><span class="co">#compare model performance to null model (and other models)</span></span>
+<span id="cb82-2"><a href="#cb82-2" aria-hidden="true" tabindex="-1"></a>RF_RMSE <span class="ot">&lt;-</span> RF_res <span class="sc">%&gt;%</span></span>
+<span id="cb82-3"><a href="#cb82-3" aria-hidden="true" tabindex="-1"></a>              tune<span class="sc">::</span><span class="fu">show_best</span>(<span class="at">n =</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb82-4"><a href="#cb82-4" aria-hidden="true" tabindex="-1"></a>              dplyr<span class="sc">::</span><span class="fu">transmute</span>(</span>
+<span id="cb82-5"><a href="#cb82-5" aria-hidden="true" tabindex="-1"></a>                <span class="at">rmse =</span> <span class="fu">round</span>(mean, <span class="dv">3</span>),</span>
+<span id="cb82-6"><a href="#cb82-6" aria-hidden="true" tabindex="-1"></a>                <span class="at">SE =</span> <span class="fu">round</span>(std_err, <span class="dv">4</span>),</span>
+<span id="cb82-7"><a href="#cb82-7" aria-hidden="true" tabindex="-1"></a>                <span class="at">model =</span> <span class="st">&quot;RF&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb82-8"><a href="#cb82-8" aria-hidden="true" tabindex="-1"></a>             dplyr<span class="sc">::</span><span class="fu">bind_rows</span>(lasso_RMSE)</span>
+<span id="cb82-9"><a href="#cb82-9" aria-hidden="true" tabindex="-1"></a>RF_RMSE</span></code></pre></div>
+<pre><code>## # A tibble: 4 x 3
+##    rmse     SE model       
+##   &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;       
+## 1  1.16 0.0168 RF          
+## 2  1.15 0.0169 LASSO       
+## 3  1.19 0.0181 Tree        
+## 4  1.21 0      Null - Train</code></pre>
+<p>In examining the results of the RF model within the context of RMSE, it does not perform better than the LASSO model. It is slightly better than the decision tree and null model.</p>
+<hr />
+</div>
+</div>
+<div id="model-selection-and-evaluation" class="section level2">
+<h2>Model Selection and Evaluation</h2>
+<p>Based on the RMSE output above, the LASSO model has the lowest RMSE and therefore is the most appropriate model in this case. The RF and Tree models are virtually identical in their performance, but all three models are an improvement over the null model. It is worth noting that none of these models actually fit the data well - suggesting the predictor variables included in this dataset aren’t all that useful in predicting the desired outcome (e.g. body temperature in suspected flu patients).</p>
+<div class="sourceCode" id="cb84"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb84-1"><a href="#cb84-1" aria-hidden="true" tabindex="-1"></a><span class="co">#fit lasso model to training set but evaluate on the test data</span></span>
+<span id="cb84-2"><a href="#cb84-2" aria-hidden="true" tabindex="-1"></a>lasso_fit_test <span class="ot">&lt;-</span> best_lasso_wflow <span class="sc">%&gt;%</span></span>
+<span id="cb84-3"><a href="#cb84-3" aria-hidden="true" tabindex="-1"></a>                    tune<span class="sc">::</span><span class="fu">last_fit</span>(<span class="at">split =</span> data_split)</span>
+<span id="cb84-4"><a href="#cb84-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb84-5"><a href="#cb84-5" aria-hidden="true" tabindex="-1"></a><span class="co">#compare test performance against training performance</span></span>
+<span id="cb84-6"><a href="#cb84-6" aria-hidden="true" tabindex="-1"></a>lasso_rmse_test <span class="ot">&lt;-</span> <span class="fu">collect_metrics</span>(lasso_fit_test) <span class="sc">%&gt;%</span></span>
+<span id="cb84-7"><a href="#cb84-7" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="at">rmse =</span> .estimate) <span class="sc">%&gt;%</span></span>
+<span id="cb84-8"><a href="#cb84-8" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">data =</span> <span class="st">&quot;test&quot;</span>)</span>
+<span id="cb84-9"><a href="#cb84-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb84-10"><a href="#cb84-10" aria-hidden="true" tabindex="-1"></a>lasso_comp <span class="ot">&lt;-</span> lasso_RMSE <span class="sc">%&gt;%</span></span>
+<span id="cb84-11"><a href="#cb84-11" aria-hidden="true" tabindex="-1"></a>                  dplyr<span class="sc">::</span><span class="fu">filter</span>(model <span class="sc">==</span> <span class="st">&quot;LASSO&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb84-12"><a href="#cb84-12" aria-hidden="true" tabindex="-1"></a>                  dplyr<span class="sc">::</span><span class="fu">transmute</span>(rmse, <span class="at">data =</span> <span class="st">&quot;train&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb84-13"><a href="#cb84-13" aria-hidden="true" tabindex="-1"></a>                  dplyr<span class="sc">::</span><span class="fu">bind_rows</span>(lasso_rmse_test) <span class="sc">%&gt;%</span></span>
+<span id="cb84-14"><a href="#cb84-14" aria-hidden="true" tabindex="-1"></a>                  dplyr<span class="sc">::</span><span class="fu">slice</span>(<span class="sc">-</span><span class="dv">3</span>) <span class="co">#don&#39;t know why the third row shows up</span></span>
+<span id="cb84-15"><a href="#cb84-15" aria-hidden="true" tabindex="-1"></a>lasso_comp</span></code></pre></div>
+<pre><code>## # A tibble: 2 x 2
+##    rmse data 
+##   &lt;dbl&gt; &lt;chr&gt;
+## 1  1.15 train
+## 2  1.15 test</code></pre>
+<div class="sourceCode" id="cb86"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb86-1"><a href="#cb86-1" aria-hidden="true" tabindex="-1"></a><span class="co">#RMSEs are essentially identical --&gt; what we want (suggests we might&#39;ve avoided overfitting)</span></span>
+<span id="cb86-2"><a href="#cb86-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb86-3"><a href="#cb86-3" aria-hidden="true" tabindex="-1"></a><span class="co">#find predictions and intervals</span></span>
+<span id="cb86-4"><a href="#cb86-4" aria-hidden="true" tabindex="-1"></a>lasso_resid_fit <span class="ot">&lt;-</span> lasso_fit_test <span class="sc">%&gt;%</span></span>
+<span id="cb86-5"><a href="#cb86-5" aria-hidden="true" tabindex="-1"></a>                  broom.mixed<span class="sc">::</span><span class="fu">augment</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb86-6"><a href="#cb86-6" aria-hidden="true" tabindex="-1"></a>                  dplyr<span class="sc">::</span><span class="fu">select</span>(.pred, BodyTemp) <span class="sc">%&gt;%</span></span>
+<span id="cb86-7"><a href="#cb86-7" aria-hidden="true" tabindex="-1"></a>                  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">.resid =</span> .pred <span class="sc">-</span> BodyTemp)</span>
+<span id="cb86-8"><a href="#cb86-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb86-9"><a href="#cb86-9" aria-hidden="true" tabindex="-1"></a><span class="co">#plot model predictions from tuned model versus actual outcomes</span></span>
+<span id="cb86-10"><a href="#cb86-10" aria-hidden="true" tabindex="-1"></a><span class="co">#geom_hline plots a 45 degree line, along which the results should fall</span></span>
+<span id="cb86-11"><a href="#cb86-11" aria-hidden="true" tabindex="-1"></a>ggplot2<span class="sc">::</span><span class="fu">ggplot</span>(lasso_resid_fit, <span class="fu">aes</span>(<span class="at">x =</span> .pred, <span class="at">y =</span> BodyTemp)) <span class="sc">+</span></span>
+<span id="cb86-12"><a href="#cb86-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_abline</span>(<span class="at">slope =</span> <span class="dv">1</span>, <span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">color =</span> <span class="st">&quot;red&quot;</span>, <span class="at">lty =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb86-13"><a href="#cb86-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb86-14"><a href="#cb86-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlim</span>(<span class="dv">97</span>, <span class="dv">104</span>) <span class="sc">+</span></span>
+<span id="cb86-15"><a href="#cb86-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylim</span>(<span class="dv">97</span>, <span class="dv">104</span>) <span class="sc">+</span></span>
+<span id="cb86-16"><a href="#cb86-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;LASSO fit: Predicted vs. Actual Body Temperature&quot;</span>,</span>
+<span id="cb86-17"><a href="#cb86-17" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">&quot;Predicted Body Temperature (F)&quot;</span>,</span>
+<span id="cb86-18"><a href="#cb86-18" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">&quot;Actual Body Temperature (F)&quot;</span>)</span></code></pre></div>
+<p><img src="ml_analysis_files/figure-html/unnamed-chunk-21-1.png" width="672" /></p>
+<div class="sourceCode" id="cb87"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb87-1"><a href="#cb87-1" aria-hidden="true" tabindex="-1"></a><span class="co">#plot model with residuals</span></span>
+<span id="cb87-2"><a href="#cb87-2" aria-hidden="true" tabindex="-1"></a><span class="co">#the geom_hline plots a straight horizontal line along which the results should fall</span></span>
+<span id="cb87-3"><a href="#cb87-3" aria-hidden="true" tabindex="-1"></a>ggplot2<span class="sc">::</span><span class="fu">ggplot</span>(lasso_resid_fit, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">as.numeric</span>(<span class="fu">row.names</span>(lasso_resid_fit)), <span class="at">y =</span> .resid))<span class="sc">+</span></span>
+<span id="cb87-4"><a href="#cb87-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">color =</span> <span class="st">&quot;red&quot;</span>, <span class="at">lty =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb87-5"><a href="#cb87-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb87-6"><a href="#cb87-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Lasso Test Fit: Residuals&quot;</span>,</span>
+<span id="cb87-7"><a href="#cb87-7" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">&quot;Observation Number&quot;</span>,</span>
+<span id="cb87-8"><a href="#cb87-8" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">&quot;Residual&quot;</span>)</span></code></pre></div>
+<p><img src="ml_analysis_files/figure-html/unnamed-chunk-21-2.png" width="672" /></p>
+<div class="sourceCode" id="cb88"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb88-1"><a href="#cb88-1" aria-hidden="true" tabindex="-1"></a><span class="co">#plot model fit vs residuals</span></span>
+<span id="cb88-2"><a href="#cb88-2" aria-hidden="true" tabindex="-1"></a><span class="co">#the geom_hline plots a straight horizontal line along which the results fall</span></span>
+<span id="cb88-3"><a href="#cb88-3" aria-hidden="true" tabindex="-1"></a>ggplot2<span class="sc">::</span><span class="fu">ggplot</span>(lasso_resid_fit, <span class="fu">aes</span>(<span class="at">x =</span> .pred, <span class="at">y =</span> .resid))<span class="sc">+</span></span>
+<span id="cb88-4"><a href="#cb88-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">color =</span> <span class="st">&quot;red&quot;</span>, <span class="at">lty =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb88-5"><a href="#cb88-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb88-6"><a href="#cb88-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlim</span>(<span class="dv">97</span>, <span class="dv">104</span>) <span class="sc">+</span></span>
+<span id="cb88-7"><a href="#cb88-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;LASSO Test Fit: Residuals vs Fitted Body Temperature&quot;</span>,</span>
+<span id="cb88-8"><a href="#cb88-8" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">&quot;Fitted Body Temperature (F)&quot;</span>,</span>
+<span id="cb88-9"><a href="#cb88-9" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">&quot;Residual&quot;</span>)</span></code></pre></div>
+<p><img src="ml_analysis_files/figure-html/unnamed-chunk-21-3.png" width="672" /></p>
+<hr />
+</div>
+<div id="overall-conclusion" class="section level2">
+<h2>Overall Conclusion</h2>
+<p>None of the models used in this analysis predict the chosen outcome (actual body temperature) all that well. There’s a variety of potential reasons for this - all of which warrant further consideration in an actual research project. Most notably, not every patient with influenza will have a fever. It would be interesting to repeat this analysis with other outcomes with which influenza typically present (e.g. cough, sore throat, myalgia, etc.).</p>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

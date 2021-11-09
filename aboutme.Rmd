@@ -1,53 +1,53 @@
 ---
-title: "About me"
+title: "About Me"
 output: 
   html_document:
-    theme: journal
+    theme: flatly
     toc: FALSE
 ---
 
 <br>
-Hello! My name is Morgan Taylor, and I'm a third year PhD student at the University of Georgia in the Department of Epidemiology & Biostatistics. I also reserach and teach with the Institute for Disaster Management.
+Hello! My name is Morgan Taylor, and I'm a third year PhD student at the University of Georgia in the Department of Epidemiology & Biostatistics. The preponderance of my research and teaching occurs with the Institute for Disaster Management.
 
 <br>
 <center>
-![](MT-headshot.jpg){width=50%}
+![MT](./files/MT-headshot.jpg){width=50%}
 </center>
 
-<br>
+---
 
 ### Background and Training
 I graduated from Emory University in 2016 with a B.S. in Chemistry. While I was at Emory, I worked for Emory EMS, a volunteer organization that led 911 response on campus and in the surrounding areas 24/7. I had the opportunity to serve as Chief of EMS my senior year, and I fell in love with the field of emergency management. I knew I wanted to learn more, so I came to the University of Georgia to complete my MPH in Disaster Management. While I enjoyed the practical lessons I learned, I had more questions each day I spent in the program. So, after graduating with my MPH in 2019, I decided to pursue an interdisciplinary PhD that would allow me to blend my varied academic interests.
 
-<br>
+---
 
 ### Research Interests
 Broadly, I am interested in applying the methodology that fields of epidemiology and biostatistics use to the field of disaster management. Currently emergency managers tend to be reactive to disasters rather than trying to understand what could (or is most likely to) happen. My hope is that my blending the disciplines, I can begin to illustrate the importance of predicting outcomes in disasters.
 
 My dissertation specifically focuses on creating a realistic model for a nuclear disaster. With the only true nuclear detonation occurring over 70 years ago, many local emergency managers are unaware of how to even begin planning for such a disaster. I'm interested in understanding how to create models that can inform preparedness measures and help local agencies prepare for the volume of patients that will occur in nuclear incidents.
 
-<br>
+---
 
 ### Previous Experience
 I have previous experience in R and SAS, but I much prefer R overall. I'm currently working on a side project using R and statistical analysis to examine the importance (or lack) of color code pages in hospitals. I'm looking forward to becoming more comfortable with workflows and sophisticated analysis in this course. I hope to learn more about machine learning in R, if the course allows.
 
-<br>
+---
 
 ### Fun Facts
 * I once spent a week camping north of the Arctic Circle. It's not as cold as one might think - especially when there are wildfires.
 * I'm extremely clumsy. I managed to break over 10 bones in the span of two years.
 * I'm currently teaching myself Swedish, because why not?
-* I am borderline-obnoxiously proud of my dog, Callie, who is a 4-year-old miniature Australian Shepherd. Say hi, Callie!
+* I have an adorable, 4-year-old miniature Australian Shepherd. Say hi, Callie!
 
 <br>
 <center>
-![Callie](Callie.jpg){width=25%}
+![Callie](./files/Callie.jpg){width=25%}
 </center>
-<br>
+---
 
 ### Fun and Interesting Data Analysis
 When you think about holidays, what do you think would cause people to seek care at an emergency room? I found this fascinating analysis of reasons people visit an emergency room on five US holidays. Which one surprises you the most?
 
 <center>
-![Holidays at the emergency room](ER-holiday-visits.png){width=75%}
+![Holidays at the emergency room](./files/ER-holiday-visits.png){width=75%}
 </center>

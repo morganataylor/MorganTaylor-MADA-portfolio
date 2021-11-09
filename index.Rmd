@@ -1,19 +1,25 @@
 ---
-title: "Morgan Taylor: Data Analysis Portfolio"
+title: "Data Analysis Portfolio"
 output: 
   html_document:
-    theme: journal
+    theme: flatly
     toc: FALSE
 ---
 
+---
 
+## Morgan Taylor, MPH, AEMT
+
+### PhD Student
+### Institute for Disaster Management and Department of Epidemiology & Biostatistics
 ### University of Georgia
 
-<br>
+---
 
 Welcome! This website was created as part of the work I'm completing during the Modern Applied Data Analysis (MADA) course at the University of Georgia (UGA).
 
 
 * Please use the `Menu Bar` above to look around.
+* The `MADA Exercises` menu includes exercises completed as part of the MADA course work.
 * Stay tuned for more projects and updates.
 

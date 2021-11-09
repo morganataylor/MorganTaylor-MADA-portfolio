@@ -1,4 +1,4 @@
-name: "My Data Analysis Portfolio"
+name: "Home"
 output_dir: 'docs'
 output:
   html_document:
@@ -7,18 +7,34 @@ output:
     toc: false
 navbar:
   type: inverse
-  title: "My Data Analysis Portfolio"
+  title: "Home"
   left:
     - text: "About Me"
       href: ./aboutme.html
-    - text: "Projects"
+    - text: "MADA Exercises"
       menu:
         - text: "R Coding"
           href: ./rcoding.html
         - text: "Visualization"
           href: ./visualization.html
-        - text: "Tidy Tuesday"
-          href: ./tidytuesday.html
+        - text: "Tidy Tuesday Exercise #1"
+          href: ./tidytuesday_exercise.html
+        - text: "Tidy Tuesday Exercise #2"
+          href: ./tidytuesday_exercise2.html
+        - text: "Influenza Analysis Project"
+          menu:
+            - text: "Introduction"
+              href: ./flu_analysis_proj.html
+            - text: "Data Processing"
+              href: ./processing.html
+            - text: "Exploratory Data Analysis"
+              href: ./exploratory_analysis.html
+            - text: "TidyModels Analysis Part 1"
+              href: ./tidymodels_1.html
+            - text: "TidyModels Analysis Part 2"
+              href: ./tidymodels_2.html
+            - text: "Machine Learning Analysis"
+              href: ./ml_analysis.html
   right:
     - icon: fa-github fa-lg
-      href: URL-TO-THIS-REPOSITORY-HERE        
+      href: https://github.com/morganataylor/MorganTaylor-MADA-portfolio    

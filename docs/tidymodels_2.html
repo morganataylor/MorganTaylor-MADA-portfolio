@@ -1,0 +1,1823 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Influenza Project - TidyModels Analysis (Part 2)</title>
+
+<script src="site_libs/header-attrs-2.11/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+
+<style type="text/css">
+  code {
+    white-space: pre;
+  }
+  .sourceCode {
+    overflow: visible;
+  }
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  { color: #cccccc; background-color: #303030; }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ffcfaf; } /* Alert */
+code span.an { color: #7f9f7f; font-weight: bold; } /* Annotation */
+code span.at { } /* Attribute */
+code span.bn { color: #dca3a3; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #f0dfaf; } /* ControlFlow */
+code span.ch { color: #dca3a3; } /* Char */
+code span.cn { color: #dca3a3; font-weight: bold; } /* Constant */
+code span.co { color: #7f9f7f; } /* Comment */
+code span.cv { color: #7f9f7f; font-weight: bold; } /* CommentVar */
+code span.do { color: #7f9f7f; } /* Documentation */
+code span.dt { color: #dfdfbf; } /* DataType */
+code span.dv { color: #dcdccc; } /* DecVal */
+code span.er { color: #c3bf9f; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #c0bed1; } /* Float */
+code span.fu { color: #efef8f; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #7f9f7f; font-weight: bold; } /* Information */
+code span.kw { color: #f0dfaf; } /* Keyword */
+code span.op { color: #f0efd0; } /* Operator */
+code span.ot { color: #efef8f; } /* Other */
+code span.pp { color: #ffcfaf; font-weight: bold; } /* Preprocessor */
+code span.sc { color: #dca3a3; } /* SpecialChar */
+code span.ss { color: #cc9393; } /* SpecialString */
+code span.st { color: #cc9393; } /* String */
+code span.va { } /* Variable */
+code span.vs { color: #cc9393; } /* VerbatimString */
+code span.wa { color: #7f9f7f; font-weight: bold; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div class="navbar navbar-inverse  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Home</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="./aboutme.html">About Me</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    MADA Exercises
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="./rcoding.html">R Coding</a>
+    </li>
+    <li>
+      <a href="./visualization.html">Visualization</a>
+    </li>
+    <li>
+      <a href="./tidytuesday_exercise.html">Tidy Tuesday Exercise #1</a>
+    </li>
+    <li>
+      <a href="./tidytuesday_exercise2.html">Tidy Tuesday Exercise #2</a>
+    </li>
+    <li class="dropdown-submenu">
+      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Influenza Analysis Project</a>
+      <ul class="dropdown-menu" role="menu">
+        <li>
+          <a href="./flu_analysis_proj.html">Introduction</a>
+        </li>
+        <li>
+          <a href="./processing.html">Data Processing</a>
+        </li>
+        <li>
+          <a href="./exploratory_analysis.html">Exploratory Data Analysis</a>
+        </li>
+        <li>
+          <a href="./tidymodels_1.html">TidyModels Analysis Part 1</a>
+        </li>
+        <li>
+          <a href="./tidymodels_2.html">TidyModels Analysis Part 2</a>
+        </li>
+        <li>
+          <a href="./ml_analysis.html">Machine Learning Analysis</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/morganataylor/MorganTaylor-MADA-portfolio">
+    <span class="fa fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Influenza Project - TidyModels Analysis (Part 2)</h1>
+
+</div>
+
+
+<p><br></p>
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>This exercise focuses on using the TidyModels framework for model evaluation and the influenza data. The main portion conducts model evaluation for the categorical outcome of interest. The appendix, added by fellow group member Joe Martin, adds a similar analysis for the continuous outcome of interest.</p>
+<p>The raw data for this exercise comes from the following citation: McKay, Brian et al. (2020), Virulence-mediated infectiousness and activity trade-offs and their impact on transmission potential of patients infected with influenza, Dryad, Dataset, <a href="https://doi.org/10.5061/dryad.51c59zw4v" class="uri">https://doi.org/10.5061/dryad.51c59zw4v</a>.</p>
+<p>The processed data was produced on the <code>Data Processing</code> tab.</p>
+<p>Within this analysis, the following definitions exist:</p>
+<ul>
+<li>Main predictor of interest = Runny Nose</li>
+<li>Continuous outcome of interest = Body Temperature</li>
+<li>Categorical outcome of interest = Nausea</li>
+<li>Whichever outcome is not currently fitted will be considered a predictor of interest</li>
+<li>All variables are included (even when there are multiple variables for the same symptom)</li>
+</ul>
+<hr />
+</div>
+<div id="required-packages" class="section level2">
+<h2>Required Packages</h2>
+<p>The following R packages are required for this exercise:</p>
+<ul>
+<li>here: for data loading/saving</li>
+<li>tidyverse: for data management</li>
+<li>tidymodels: for data modeling</li>
+<li>skimr: for variable summaries</li>
+</ul>
+<hr />
+</div>
+<div id="load-processed-data" class="section level2">
+<h2>Load Processed Data</h2>
+<p>Load the data created on the <code>Data Processing</code> page.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># path to data</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># note the use of the here() package and not absolute paths</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>data_location <span class="ot">&lt;-</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;data&quot;</span>,<span class="st">&quot;flu&quot;</span>,<span class="st">&quot;processeddata.rds&quot;</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># load data using the &quot;ReadRDS&quot; function in base R.</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>mydata <span class="ot">&lt;-</span> base<span class="sc">::</span><span class="fu">readRDS</span>(data_location)</span></code></pre></div>
+<hr />
+</div>
+<div id="data-summary" class="section level2">
+<h2>Data Summary</h2>
+<p>For a more robust exploration, refer to the <code>Exploratory Data Analysis</code> page. However, for reference, we can look at the dataframe summary using the <code>skimr</code> package.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">#summary of data using skimr package</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>skimr<span class="sc">::</span><span class="fu">skim</span>(mydata)</span></code></pre></div>
+<table style="width: auto;" class="table table-condensed">
+<caption>
+Data summary
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:left;">
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Name
+</td>
+<td style="text-align:left;">
+mydata
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Number of rows
+</td>
+<td style="text-align:left;">
+730
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Number of columns
+</td>
+<td style="text-align:left;">
+32
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+_______________________
+</td>
+<td style="text-align:left;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Column type frequency:
+</td>
+<td style="text-align:left;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+factor
+</td>
+<td style="text-align:left;">
+31
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+________________________
+</td>
+<td style="text-align:left;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Group variables
+</td>
+<td style="text-align:left;">
+None
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: factor</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+skim_variable
+</th>
+<th style="text-align:right;">
+n_missing
+</th>
+<th style="text-align:right;">
+complete_rate
+</th>
+<th style="text-align:left;">
+ordered
+</th>
+<th style="text-align:right;">
+n_unique
+</th>
+<th style="text-align:left;">
+top_counts
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+SwollenLymphNodes
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+No: 418, Yes: 312
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ChestCongestion
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+Yes: 407, No: 323
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ChillsSweats
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+Yes: 600, No: 130
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NasalCongestion
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+Yes: 563, No: 167
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CoughYN
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+Yes: 655, No: 75
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Sneeze
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+Yes: 391, No: 339
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Fatigue
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+Yes: 666, No: 64
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SubjectiveFever
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+Yes: 500, No: 230
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Headache
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+Yes: 615, No: 115
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Weakness
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:left;">
+Mod: 338, Mil: 223, Sev: 120, Non: 49
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+WeaknessYN
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+Yes: 681, No: 49
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CoughIntensity
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:left;">
+Mod: 357, Sev: 172, Mil: 154, Non: 47
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CoughYN2
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+Yes: 683, No: 47
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Myalgia
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:left;">
+Mod: 325, Mil: 213, Sev: 113, Non: 79
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MyalgiaYN
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+Yes: 651, No: 79
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+RunnyNose
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+Yes: 519, No: 211
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+AbPain
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+No: 639, Yes: 91
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ChestPain
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+No: 497, Yes: 233
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Diarrhea
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+No: 631, Yes: 99
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+EyePn
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+No: 617, Yes: 113
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Insomnia
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+Yes: 415, No: 315
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ItchyEye
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+No: 551, Yes: 179
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Nausea
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+No: 475, Yes: 255
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+EarPn
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+No: 568, Yes: 162
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Hearing
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+No: 700, Yes: 30
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Pharyngitis
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+Yes: 611, No: 119
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Breathless
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+No: 436, Yes: 294
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ToothPn
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+No: 565, Yes: 165
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Vision
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+No: 711, Yes: 19
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Vomit
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+No: 652, Yes: 78
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Wheeze
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+No: 510, Yes: 220
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: numeric</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+skim_variable
+</th>
+<th style="text-align:right;">
+n_missing
+</th>
+<th style="text-align:right;">
+complete_rate
+</th>
+<th style="text-align:right;">
+mean
+</th>
+<th style="text-align:right;">
+sd
+</th>
+<th style="text-align:right;">
+p0
+</th>
+<th style="text-align:right;">
+p25
+</th>
+<th style="text-align:right;">
+p50
+</th>
+<th style="text-align:right;">
+p75
+</th>
+<th style="text-align:right;">
+p100
+</th>
+<th style="text-align:left;">
+hist
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+BodyTemp
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+98.94
+</td>
+<td style="text-align:right;">
+1.2
+</td>
+<td style="text-align:right;">
+97.2
+</td>
+<td style="text-align:right;">
+98.2
+</td>
+<td style="text-align:right;">
+98.5
+</td>
+<td style="text-align:right;">
+99.3
+</td>
+<td style="text-align:right;">
+103.1
+</td>
+<td style="text-align:left;">
+&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2582&gt;&lt;U+2581&gt;&lt;U+2581&gt;
+</td>
+</tr>
+</tbody>
+</table>
+<hr />
+</div>
+<div id="data-splitting" class="section level2">
+<h2>Data Splitting</h2>
+<p>Task: Write a code that takes the data and splits it randomly into a train and test datasets.The code for this section comes from the “Data Splitting” portion of the <a href="https://www.tidymodels.org/start/recipes/">Tidyverse Tutorial</a>.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">#fix the random numbers by setting the seed</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co">#this enables the analysis to be reproducible when random numbers are used</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">222</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co">#put 3/4 of data into the training set</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>data_split <span class="ot">&lt;-</span> rsample<span class="sc">::</span><span class="fu">initial_split</span>(mydata, <span class="at">prop =</span> <span class="dv">3</span><span class="sc">/</span><span class="dv">4</span>)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="co">#create dataframes for the two sets:</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>train_data <span class="ot">&lt;-</span> rsample<span class="sc">::</span><span class="fu">training</span>(data_split)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>test_data <span class="ot">&lt;-</span> rsample<span class="sc">::</span><span class="fu">testing</span>(data_split)</span></code></pre></div>
+<hr />
+</div>
+<div id="logistic-regression-for-categorical-outcome-nausea" class="section level2">
+<h2>Logistic Regression for Categorical Outcome: Nausea</h2>
+<p>For the categorical outcome of interest (nausea) we can do the following:</p>
+<ol style="list-style-type: decimal">
+<li>Create a logistic regression workflow</li>
+<li>Fit the model to all predictors</li>
+<li>Fit the model to our primary predictor (runny nose)</li>
+<li>Compare the models</li>
+</ol>
+<p><br></p>
+<div id="workflow-creation-and-model-fitting" class="section level3">
+<h3>Workflow creation and model fitting</h3>
+<p>Task: Create a simple recipe that fits categorical outcome of interest (Nausea) to all predictors. The code for this section comes from the “Create Recipes” portion of the <a href="https://www.tidymodels.org/start/recipes/">Tidyverse Tutorial</a>. Ignore the concept of roles and features discussed in the tutorial.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">#initiate a new recipe using &#39;recipe&#39; function</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>nausea_rec <span class="ot">&lt;-</span> recipes<span class="sc">::</span><span class="fu">recipe</span>(Nausea <span class="sc">~</span>., <span class="at">data =</span> train_data)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co">#build a model specfiication using &#39;parsnip&#39; package</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>lr_mod <span class="ot">&lt;-</span> parsnip<span class="sc">::</span><span class="fu">logistic_reg</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>          parsnip<span class="sc">::</span><span class="fu">set_engine</span>(<span class="st">&quot;glm&quot;</span>)</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="co">#use &#39;workflows&#39; package to create a simple workflow that fits a logistic model to all predictors using glm function</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>nausea_wflow <span class="ot">&lt;-</span> workflows<span class="sc">::</span><span class="fu">workflow</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>                workflows<span class="sc">::</span><span class="fu">add_model</span>(lr_mod) <span class="sc">%&gt;%</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>                workflows<span class="sc">::</span><span class="fu">add_recipe</span>(nausea_rec)</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>nausea_wflow</span></code></pre></div>
+<pre><code>## == Workflow ====================================================================
+## Preprocessor: Recipe
+## Model: logistic_reg()
+## 
+## -- Preprocessor ----------------------------------------------------------------
+## 0 Recipe Steps
+## 
+## -- Model -----------------------------------------------------------------------
+## Logistic Regression Model Specification (classification)
+## 
+## Computational engine: glm</code></pre>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">#0 recipe steps?</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co">#use function to prepare the recipe and train the model from the resulting predictors</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>nausea_fit <span class="ot">&lt;-</span> nausea_wflow <span class="sc">%&gt;%</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>                parsnip<span class="sc">::</span><span class="fu">fit</span>(<span class="at">data =</span> train_data)</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co">#create tibble for model fit using broom and extract</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>nausea_fit <span class="sc">%&gt;%</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  workflowsets<span class="sc">::</span><span class="fu">extract_fit_parsnip</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  broom<span class="sc">::</span><span class="fu">tidy</span>()</span></code></pre></div>
+<pre><code>## # A tibble: 38 x 5
+##    term                 estimate std.error statistic p.value
+##    &lt;chr&gt;                   &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;
+##  1 (Intercept)             1.63      9.40      0.173  0.862 
+##  2 SwollenLymphNodesYes   -0.241     0.232    -1.04   0.298 
+##  3 ChestCongestionYes      0.219     0.257     0.853  0.394 
+##  4 ChillsSweatsYes         0.115     0.332     0.346  0.729 
+##  5 NasalCongestionYes      0.560     0.311     1.80   0.0713
+##  6 CoughYNYes             -0.705     0.611    -1.15   0.249 
+##  7 SneezeYes               0.117     0.248     0.473  0.636 
+##  8 FatigueYes              0.177     0.438     0.403  0.687 
+##  9 SubjectiveFeverYes      0.229     0.264     0.868  0.385 
+## 10 HeadacheYes             0.435     0.352     1.24   0.216 
+## # ... with 28 more rows</code></pre>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">#create tibble for model fit using broom and extract</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co">#use mutate_if to reduce the number of decimal places</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>nausea_tibble <span class="ot">&lt;-</span> nausea_fit <span class="sc">%&gt;%</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>                  workflowsets<span class="sc">::</span><span class="fu">extract_fit_parsnip</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>                  broom<span class="sc">::</span><span class="fu">tidy</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>                  dplyr<span class="sc">::</span><span class="fu">mutate_if</span>(is.numeric, round, <span class="dv">3</span>)</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>nausea_tibble</span></code></pre></div>
+<pre><code>## # A tibble: 38 x 5
+##    term                 estimate std.error statistic p.value
+##    &lt;chr&gt;                   &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;
+##  1 (Intercept)             1.63      9.40      0.173   0.862
+##  2 SwollenLymphNodesYes   -0.241     0.232    -1.04    0.298
+##  3 ChestCongestionYes      0.219     0.257     0.853   0.394
+##  4 ChillsSweatsYes         0.115     0.332     0.346   0.729
+##  5 NasalCongestionYes      0.56      0.311     1.80    0.071
+##  6 CoughYNYes             -0.705     0.611    -1.15    0.249
+##  7 SneezeYes               0.117     0.248     0.473   0.636
+##  8 FatigueYes              0.177     0.438     0.403   0.687
+##  9 SubjectiveFeverYes      0.229     0.264     0.868   0.385
+## 10 HeadacheYes             0.435     0.352     1.24    0.216
+## # ... with 28 more rows</code></pre>
+<hr />
+</div>
+<div id="model-1-all-predictors" class="section level3">
+<h3>Model 1: All Predictors</h3>
+<p>Task: Examine the predictions, ROC and ROC-AUC for the data. Apply it to both the training and test data. The code for this section comes from the “Use a trained workflow” portion of the <a href="https://www.tidymodels.org/start/recipes/">Tidyverse Tutorial</a></p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co">#predict the nausea variable using the test data</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>stats<span class="sc">::</span><span class="fu">predict</span>(nausea_fit, test_data)</span></code></pre></div>
+<pre><code>## Warning in predict.lm(object, newdata, se.fit, scale = 1, type = if (type == :
+## prediction from a rank-deficient fit may be misleading</code></pre>
+<pre><code>## # A tibble: 183 x 1
+##    .pred_class
+##    &lt;fct&gt;      
+##  1 No         
+##  2 No         
+##  3 No         
+##  4 No         
+##  5 No         
+##  6 Yes        
+##  7 Yes        
+##  8 No         
+##  9 No         
+## 10 Yes        
+## # ... with 173 more rows</code></pre>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co">#warning is expected as there are colinear/nested variables contained in the dataset</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="co">#predict the probability rather than just the category of variable</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>nausea_aug_test <span class="ot">&lt;-</span> tune<span class="sc">::</span><span class="fu">augment</span>(nausea_fit, test_data)</span></code></pre></div>
+<pre><code>## Warning in predict.lm(object, newdata, se.fit, scale = 1, type = if (type == :
+## prediction from a rank-deficient fit may be misleading
+
+## Warning in predict.lm(object, newdata, se.fit, scale = 1, type = if (type == :
+## prediction from a rank-deficient fit may be misleading</code></pre>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">#warning is expected as there are colinear/nested variables contained in the dataset</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co">#generate ROC curve for test data</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>nausea_aug_test <span class="sc">%&gt;%</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  yardstick<span class="sc">::</span><span class="fu">roc_curve</span>(<span class="at">truth =</span> Nausea, .pred_Yes, <span class="at">event_level =</span> <span class="st">&quot;second&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  workflowsets<span class="sc">::</span><span class="fu">autoplot</span>()</span></code></pre></div>
+<p><img src="tidymodels_2_files/figure-html/model%201%20evaluation-1.png" width="672" /></p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co">#estimate the area under the curve for test data</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>nausea_aug_test <span class="sc">%&gt;%</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  yardstick<span class="sc">::</span><span class="fu">roc_auc</span>(<span class="at">truth =</span> Nausea, .pred_Yes, <span class="at">event_level =</span> <span class="st">&quot;second&quot;</span>)</span></code></pre></div>
+<pre><code>## # A tibble: 1 x 3
+##   .metric .estimator .estimate
+##   &lt;chr&gt;   &lt;chr&gt;          &lt;dbl&gt;
+## 1 roc_auc binary         0.724</code></pre>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co">#ROC-AUC = 0.724</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="co">#Suggests the model may be useful in predicting the Nausea outcome</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="co">#predict the nausea variable using the training data</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>stats<span class="sc">::</span><span class="fu">predict</span>(nausea_fit, train_data)</span></code></pre></div>
+<pre><code>## Warning in predict.lm(object, newdata, se.fit, scale = 1, type = if (type == :
+## prediction from a rank-deficient fit may be misleading</code></pre>
+<pre><code>## # A tibble: 547 x 1
+##    .pred_class
+##    &lt;fct&gt;      
+##  1 No         
+##  2 Yes        
+##  3 No         
+##  4 No         
+##  5 Yes        
+##  6 No         
+##  7 No         
+##  8 No         
+##  9 No         
+## 10 No         
+## # ... with 537 more rows</code></pre>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co">#warning is expected as there are colinear/nested variables contained in the dataset</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="co">#predict the probability rather than just the category of variable</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>nausea_aug_train <span class="ot">&lt;-</span> tune<span class="sc">::</span><span class="fu">augment</span>(nausea_fit, train_data)</span></code></pre></div>
+<pre><code>## Warning in predict.lm(object, newdata, se.fit, scale = 1, type = if (type == :
+## prediction from a rank-deficient fit may be misleading
+
+## Warning in predict.lm(object, newdata, se.fit, scale = 1, type = if (type == :
+## prediction from a rank-deficient fit may be misleading</code></pre>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co">#warning is expected as there are colinear/nested variables contained in the dataset</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="co">#generate ROC curve for training data</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>nausea_aug_train <span class="sc">%&gt;%</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  yardstick<span class="sc">::</span><span class="fu">roc_curve</span>(<span class="at">truth =</span> Nausea, .pred_Yes, <span class="at">event_level =</span> <span class="st">&quot;second&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>  workflowsets<span class="sc">::</span><span class="fu">autoplot</span>()</span></code></pre></div>
+<p><img src="tidymodels_2_files/figure-html/model%201%20evaluation-2.png" width="672" /></p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co">#estimate the area under the curve for training data</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>nausea_aug_train <span class="sc">%&gt;%</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  yardstick<span class="sc">::</span><span class="fu">roc_auc</span>(<span class="at">truth =</span> Nausea, .pred_Yes, <span class="at">event_level =</span> <span class="st">&quot;second&quot;</span>)</span></code></pre></div>
+<pre><code>## # A tibble: 1 x 3
+##   .metric .estimator .estimate
+##   &lt;chr&gt;   &lt;chr&gt;          &lt;dbl&gt;
+## 1 roc_auc binary         0.787</code></pre>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co">#ROC-AUC = 0.787</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="co">#Suggests the model may be useful in predicting the Nausea outcome</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="co">#slightly better value than ROC-AUC using test data but not extremely different</span></span></code></pre></div>
+<hr />
+</div>
+<div id="alternative-model-runny-nose-only" class="section level3">
+<h3>Alternative model: Runny Nose Only</h3>
+<p>Task: Re-do the fitting but now with a model that only fits the main predictor (RunnyNose) to the categorical outcome (Nausea).</p>
+<p>First, set up a new recipe and create a new workflow function/fit.</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co">#initiate a new recipe using &#39;recipe&#39; function</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>nausea_rec_RN <span class="ot">&lt;-</span> recipes<span class="sc">::</span><span class="fu">recipe</span>(Nausea <span class="sc">~</span> RunnyNose, <span class="at">data =</span> train_data)</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="co">#use the same model specification defined above (lr_mod)</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a><span class="co">#use &#39;workflows&#39; package to create a simple workflow that fits a logistic model to all predictors using glm function</span></span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>nausea_wflow_RN <span class="ot">&lt;-</span> workflows<span class="sc">::</span><span class="fu">workflow</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>                workflows<span class="sc">::</span><span class="fu">add_model</span>(lr_mod) <span class="sc">%&gt;%</span></span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>                workflows<span class="sc">::</span><span class="fu">add_recipe</span>(nausea_rec_RN)</span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>nausea_wflow_RN</span></code></pre></div>
+<pre><code>## == Workflow ====================================================================
+## Preprocessor: Recipe
+## Model: logistic_reg()
+## 
+## -- Preprocessor ----------------------------------------------------------------
+## 0 Recipe Steps
+## 
+## -- Model -----------------------------------------------------------------------
+## Logistic Regression Model Specification (classification)
+## 
+## Computational engine: glm</code></pre>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co">#0 recipe steps?</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="co">#use function to prepare the recipe and train the model from the resulting predictors</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>nausea_fit_RN <span class="ot">&lt;-</span> nausea_wflow_RN <span class="sc">%&gt;%</span></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>                  parsnip<span class="sc">::</span><span class="fu">fit</span>(<span class="at">data =</span> train_data)</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a><span class="co">#create tibble for model fit using broom and extract</span></span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>nausea_fit_RN <span class="sc">%&gt;%</span></span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>  workflowsets<span class="sc">::</span><span class="fu">extract_fit_parsnip</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>  broom<span class="sc">::</span><span class="fu">tidy</span>()</span></code></pre></div>
+<pre><code>## # A tibble: 2 x 5
+##   term         estimate std.error statistic    p.value
+##   &lt;chr&gt;           &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;
+## 1 (Intercept)    -0.790     0.172    -4.59  0.00000447
+## 2 RunnyNoseYes    0.188     0.202     0.930 0.352</code></pre>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co">#create tibble for model fit using broom and extract</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="co">#use mutate_if to reduce the number of decimal places</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>nausea_tibble_RN <span class="ot">&lt;-</span> nausea_fit_RN <span class="sc">%&gt;%</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>                      workflowsets<span class="sc">::</span><span class="fu">extract_fit_parsnip</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>                      broom<span class="sc">::</span><span class="fu">tidy</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>                      dplyr<span class="sc">::</span><span class="fu">mutate_if</span>(is.numeric, round, <span class="dv">3</span>)</span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>nausea_tibble_RN</span></code></pre></div>
+<pre><code>## # A tibble: 2 x 5
+##   term         estimate std.error statistic p.value
+##   &lt;chr&gt;           &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;
+## 1 (Intercept)    -0.79      0.172     -4.59   0    
+## 2 RunnyNoseYes    0.188     0.202      0.93   0.352</code></pre>
+<hr />
+</div>
+<div id="logistic-model-comparison" class="section level3">
+<h3>Logistic Model Comparison</h3>
+<p>Now examine the predictions, ROC and ROC-AUC for the data. Apply it to both the training and test data.</p>
+<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co">#predict the nausea variable using the test data</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>stats<span class="sc">::</span><span class="fu">predict</span>(nausea_fit_RN, test_data)</span></code></pre></div>
+<pre><code>## # A tibble: 183 x 1
+##    .pred_class
+##    &lt;fct&gt;      
+##  1 No         
+##  2 No         
+##  3 No         
+##  4 No         
+##  5 No         
+##  6 No         
+##  7 No         
+##  8 No         
+##  9 No         
+## 10 No         
+## # ... with 173 more rows</code></pre>
+<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co">#warning is expected as there are colinear/nested variables contained in the dataset</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a><span class="co">#predict the probability rather than just the category of variable</span></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>nausea_aug_test_RN <span class="ot">&lt;-</span> tune<span class="sc">::</span><span class="fu">augment</span>(nausea_fit_RN, test_data)</span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a><span class="co">#warning is expected as there are colinear/nested variables contained in the dataset</span></span></code></pre></div>
+<p><br></p>
+<p>Now, generate ROC curves and calculate ROC-AUC.</p>
+<div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co">#generate ROC curve for test data</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>nausea_aug_test_RN <span class="sc">%&gt;%</span></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>  yardstick<span class="sc">::</span><span class="fu">roc_curve</span>(<span class="at">truth =</span> Nausea, .pred_Yes, <span class="at">event_level =</span> <span class="st">&quot;second&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>  workflowsets<span class="sc">::</span><span class="fu">autoplot</span>()</span></code></pre></div>
+<p><img src="tidymodels_2_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co">#almost a diagonal line</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a><span class="co">#estimate the area under the curve for test data</span></span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>nausea_aug_test_RN <span class="sc">%&gt;%</span></span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>  yardstick<span class="sc">::</span><span class="fu">roc_auc</span>(<span class="at">truth =</span> Nausea, .pred_Yes, <span class="at">event_level =</span> <span class="st">&quot;second&quot;</span>)</span></code></pre></div>
+<pre><code>## # A tibble: 1 x 3
+##   .metric .estimator .estimate
+##   &lt;chr&gt;   &lt;chr&gt;          &lt;dbl&gt;
+## 1 roc_auc binary         0.466</code></pre>
+<div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co">#ROC-AUC = 0.466</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="co">#Suggests the model may not be that useful in predicting the Nausea outcome</span></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a><span class="co">#predict the nausea variable using the training data</span></span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>stats<span class="sc">::</span><span class="fu">predict</span>(nausea_fit_RN, train_data)</span></code></pre></div>
+<pre><code>## # A tibble: 547 x 1
+##    .pred_class
+##    &lt;fct&gt;      
+##  1 No         
+##  2 No         
+##  3 No         
+##  4 No         
+##  5 No         
+##  6 No         
+##  7 No         
+##  8 No         
+##  9 No         
+## 10 No         
+## # ... with 537 more rows</code></pre>
+<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="co">#warning is expected as there are colinear/nested variables contained in the dataset</span></span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a><span class="co">#predict the probability rather than just the category of variable</span></span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>nausea_aug_train_RN <span class="ot">&lt;-</span> tune<span class="sc">::</span><span class="fu">augment</span>(nausea_fit_RN, train_data)</span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a><span class="co">#warning is expected as there are colinear/nested variables contained in the dataset</span></span>
+<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a><span class="co">#generate ROC curve for training data</span></span>
+<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a>nausea_aug_train_RN <span class="sc">%&gt;%</span></span>
+<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a>  yardstick<span class="sc">::</span><span class="fu">roc_curve</span>(<span class="at">truth =</span> Nausea, .pred_Yes, <span class="at">event_level =</span> <span class="st">&quot;second&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a>  workflowsets<span class="sc">::</span><span class="fu">autoplot</span>()</span></code></pre></div>
+<p><img src="tidymodels_2_files/figure-html/unnamed-chunk-2-2.png" width="672" /></p>
+<div class="sourceCode" id="cb42"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="co">#almost a diagonal line</span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a><span class="co">#estimate the area under the curve for training data</span></span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>nausea_aug_train_RN <span class="sc">%&gt;%</span></span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>  yardstick<span class="sc">::</span><span class="fu">roc_auc</span>(<span class="at">truth =</span> Nausea, .pred_Yes, <span class="at">event_level =</span> <span class="st">&quot;second&quot;</span>)</span></code></pre></div>
+<pre><code>## # A tibble: 1 x 3
+##   .metric .estimator .estimate
+##   &lt;chr&gt;   &lt;chr&gt;          &lt;dbl&gt;
+## 1 roc_auc binary         0.519</code></pre>
+<div class="sourceCode" id="cb44"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="co">#ROC-AUC = 0.519</span></span></code></pre></div>
+<p>The ROC-AUC values suggest the models may be not be that useful in predicting the Nausea outcome. The ROC-AUC is slightly better value for the training data than for the test data (but not extremely different). There is approximately the same amount of difference for the test/train in model 1.</p>
+<hr />
+</div>
+</div>
+<div id="appendix-a---continuous-outcome-model-added-by-joe-martin" class="section level2">
+<h2>Appendix A - Continuous Outcome Model (Added by Joe Martin)</h2>
+<p>For the continuous outcome of interest (body temperature) we can do the following:</p>
+<ol style="list-style-type: decimal">
+<li>Create a linear regression workflow</li>
+<li>Fit the model to all predictors</li>
+<li>Fit the model to our primary predictor (runny nose)</li>
+<li>Compare the models</li>
+</ol>
+<p><br></p>
+<div id="model-1-all-predictors-1" class="section level3">
+<h3>Model 1: All Predictors</h3>
+<div class="sourceCode" id="cb45"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="co"># I&#39;m continuing to use the same data and code as in Part 1. </span></span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a><span class="co"># In this part, the outcome variable will be BODY TEMPERATURE and will use a LINEAR MODEL</span></span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a><span class="co">#initiate a new recipe using &#39;recipe&#39; function</span></span>
+<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a>bt_rec <span class="ot">&lt;-</span> recipes<span class="sc">::</span><span class="fu">recipe</span>(BodyTemp <span class="sc">~</span>., <span class="at">data =</span> train_data)</span>
+<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a><span class="co">#build a model specfiication using &#39;parsnip&#39; package</span></span>
+<span id="cb45-8"><a href="#cb45-8" aria-hidden="true" tabindex="-1"></a>lm_mod <span class="ot">&lt;-</span> parsnip<span class="sc">::</span><span class="fu">linear_reg</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb45-9"><a href="#cb45-9" aria-hidden="true" tabindex="-1"></a>          parsnip<span class="sc">::</span><span class="fu">set_engine</span>(<span class="st">&quot;lm&quot;</span>)</span></code></pre></div>
+<p><br></p>
+<div class="sourceCode" id="cb46"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="co">#use &#39;workflows&#39; package to create a simple workflow that fits a logistic model to all predictors using glm function</span></span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>bt_wflow <span class="ot">&lt;-</span> workflows<span class="sc">::</span><span class="fu">workflow</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>                workflows<span class="sc">::</span><span class="fu">add_model</span>(lm_mod) <span class="sc">%&gt;%</span></span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>                workflows<span class="sc">::</span><span class="fu">add_recipe</span>(bt_rec)</span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a><span class="co">#0 recipe steps?</span></span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a><span class="co">#use function to prepare the recipe and train the model from the resulting predictors</span></span>
+<span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a>bt_fit <span class="ot">&lt;-</span> bt_wflow <span class="sc">%&gt;%</span></span>
+<span id="cb46-9"><a href="#cb46-9" aria-hidden="true" tabindex="-1"></a>                parsnip<span class="sc">::</span><span class="fu">fit</span>(<span class="at">data =</span> train_data)</span>
+<span id="cb46-10"><a href="#cb46-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-11"><a href="#cb46-11" aria-hidden="true" tabindex="-1"></a><span class="co">#create tibble for model fit using broom and extract</span></span>
+<span id="cb46-12"><a href="#cb46-12" aria-hidden="true" tabindex="-1"></a>bt_fit <span class="sc">%&gt;%</span></span>
+<span id="cb46-13"><a href="#cb46-13" aria-hidden="true" tabindex="-1"></a>  workflowsets<span class="sc">::</span><span class="fu">extract_fit_parsnip</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb46-14"><a href="#cb46-14" aria-hidden="true" tabindex="-1"></a>  broom<span class="sc">::</span><span class="fu">tidy</span>()</span></code></pre></div>
+<pre><code>## # A tibble: 38 x 5
+##    term                 estimate std.error statistic    p.value
+##    &lt;chr&gt;                   &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;
+##  1 (Intercept)           97.7        0.345   284.    0         
+##  2 SwollenLymphNodesYes  -0.191      0.108    -1.77  0.0779    
+##  3 ChestCongestionYes     0.128      0.116     1.10  0.272     
+##  4 ChillsSweatsYes        0.196      0.148     1.32  0.188     
+##  5 NasalCongestionYes    -0.163      0.137    -1.19  0.233     
+##  6 CoughYNYes             0.380      0.289     1.31  0.189     
+##  7 SneezeYes             -0.471      0.114    -4.13  0.0000425 
+##  8 FatigueYes             0.354      0.187     1.89  0.0592    
+##  9 SubjectiveFeverYes     0.558      0.119     4.70  0.00000338
+## 10 HeadacheYes            0.0838     0.151     0.554 0.580     
+## # ... with 28 more rows</code></pre>
+<p><br></p>
+<div class="sourceCode" id="cb48"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="co">#create tibble for model fit using broom and extract</span></span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a><span class="co">#use mutate_if to reduce the number of decimal places</span></span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a><span class="co">#increase number of decimal places to see significant p-values</span></span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>bt_tibble <span class="ot">&lt;-</span> bt_fit <span class="sc">%&gt;%</span></span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a>                  workflowsets<span class="sc">::</span><span class="fu">extract_fit_parsnip</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>                  broom<span class="sc">::</span><span class="fu">tidy</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a>                  dplyr<span class="sc">::</span><span class="fu">mutate_if</span>(is.numeric, round, <span class="dv">6</span>)</span>
+<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a>bt_tibble</span></code></pre></div>
+<pre><code>## # A tibble: 38 x 5
+##    term                 estimate std.error statistic  p.value
+##    &lt;chr&gt;                   &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;
+##  1 (Intercept)           97.7        0.345   284.    0       
+##  2 SwollenLymphNodesYes  -0.191      0.108    -1.77  0.0779  
+##  3 ChestCongestionYes     0.128      0.116     1.10  0.272   
+##  4 ChillsSweatsYes        0.196      0.148     1.32  0.188   
+##  5 NasalCongestionYes    -0.163      0.137    -1.19  0.233   
+##  6 CoughYNYes             0.380      0.289     1.31  0.189   
+##  7 SneezeYes             -0.471      0.114    -4.13  0.000042
+##  8 FatigueYes             0.354      0.187     1.89  0.0592  
+##  9 SubjectiveFeverYes     0.558      0.119     4.70  0.000003
+## 10 HeadacheYes            0.0838     0.151     0.554 0.580   
+## # ... with 28 more rows</code></pre>
+<p><br></p>
+<pre><code>## Warning in predict.lm(object = object$fit, newdata = new_data, type =
+## &quot;response&quot;): prediction from a rank-deficient fit may be misleading</code></pre>
+<pre><code>## # A tibble: 183 x 1
+##    .pred
+##    &lt;dbl&gt;
+##  1  99.3
+##  2  99.0
+##  3  99.7
+##  4  98.7
+##  5  99.0
+##  6  99.5
+##  7  99.3
+##  8  98.9
+##  9  99.6
+## 10  98.8
+## # ... with 173 more rows</code></pre>
+<pre><code>## Warning in predict.lm(object = object$fit, newdata = new_data, type =
+## &quot;response&quot;): prediction from a rank-deficient fit may be misleading</code></pre>
+<p><br></p>
+<p>Test for error in the model with Root Mean-Squared Error.</p>
+<div class="sourceCode" id="cb53"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="co">#use RMSE to evaluate linear model</span></span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>bt_error <span class="ot">&lt;-</span> bt_aug_test <span class="sc">%&gt;%</span> </span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>  yardstick<span class="sc">::</span><span class="fu">rmse</span>(<span class="at">truth =</span> BodyTemp, .pred)</span>
+<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>bt_error<span class="sc">$</span>title <span class="ot">&lt;-</span> <span class="st">&quot;Error for all variables&quot;</span></span></code></pre></div>
+<p><br></p>
+</div>
+<div id="alternative-model-runny-nose-only-1" class="section level3">
+<h3>Alternative Model: Runny Nose Only</h3>
+<div class="sourceCode" id="cb54"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="co">#initiate a new recipe using &#39;recipe&#39; function</span></span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>rn_rec <span class="ot">&lt;-</span> recipes<span class="sc">::</span><span class="fu">recipe</span>(BodyTemp <span class="sc">~</span> RunnyNose, <span class="at">data =</span> train_data)</span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a><span class="co">#build a model specification using &#39;parsnip&#39; package</span></span>
+<span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a>rn_mod <span class="ot">&lt;-</span> parsnip<span class="sc">::</span><span class="fu">linear_reg</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb54-6"><a href="#cb54-6" aria-hidden="true" tabindex="-1"></a>          parsnip<span class="sc">::</span><span class="fu">set_engine</span>(<span class="st">&quot;lm&quot;</span>)</span>
+<span id="cb54-7"><a href="#cb54-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-8"><a href="#cb54-8" aria-hidden="true" tabindex="-1"></a><span class="co">#use &#39;workflows&#39; package to create a simple workflow that fits a logistic model to all predictors using glm function</span></span>
+<span id="cb54-9"><a href="#cb54-9" aria-hidden="true" tabindex="-1"></a>rn_wflow <span class="ot">&lt;-</span> workflows<span class="sc">::</span><span class="fu">workflow</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb54-10"><a href="#cb54-10" aria-hidden="true" tabindex="-1"></a>                workflows<span class="sc">::</span><span class="fu">add_model</span>(lm_mod) <span class="sc">%&gt;%</span></span>
+<span id="cb54-11"><a href="#cb54-11" aria-hidden="true" tabindex="-1"></a>                workflows<span class="sc">::</span><span class="fu">add_recipe</span>(rn_rec)</span>
+<span id="cb54-12"><a href="#cb54-12" aria-hidden="true" tabindex="-1"></a>rn_wflow</span></code></pre></div>
+<pre><code>## == Workflow ====================================================================
+## Preprocessor: Recipe
+## Model: linear_reg()
+## 
+## -- Preprocessor ----------------------------------------------------------------
+## 0 Recipe Steps
+## 
+## -- Model -----------------------------------------------------------------------
+## Linear Regression Model Specification (regression)
+## 
+## Computational engine: lm</code></pre>
+<div class="sourceCode" id="cb56"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="co">#0 recipe steps?</span></span>
+<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a><span class="co">#use function to prepare the recipe and train the model from the resulting predictors</span></span>
+<span id="cb56-4"><a href="#cb56-4" aria-hidden="true" tabindex="-1"></a>rn_fit <span class="ot">&lt;-</span> rn_wflow <span class="sc">%&gt;%</span></span>
+<span id="cb56-5"><a href="#cb56-5" aria-hidden="true" tabindex="-1"></a>                parsnip<span class="sc">::</span><span class="fu">fit</span>(<span class="at">data =</span> train_data)</span>
+<span id="cb56-6"><a href="#cb56-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb56-7"><a href="#cb56-7" aria-hidden="true" tabindex="-1"></a><span class="co">#create tibble for model fit using broom and extract</span></span>
+<span id="cb56-8"><a href="#cb56-8" aria-hidden="true" tabindex="-1"></a>rn_fit <span class="sc">%&gt;%</span></span>
+<span id="cb56-9"><a href="#cb56-9" aria-hidden="true" tabindex="-1"></a>  workflowsets<span class="sc">::</span><span class="fu">extract_fit_parsnip</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb56-10"><a href="#cb56-10" aria-hidden="true" tabindex="-1"></a>  broom<span class="sc">::</span><span class="fu">tidy</span>()</span></code></pre></div>
+<pre><code>## # A tibble: 2 x 5
+##   term         estimate std.error statistic p.value
+##   &lt;chr&gt;           &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;
+## 1 (Intercept)    99.1      0.0964   1028.    0     
+## 2 RunnyNoseYes   -0.261    0.114      -2.29  0.0225</code></pre>
+<div class="sourceCode" id="cb58"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="co">#create tibble for model fit using broom and extract</span></span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a><span class="co">#use mutate_if to reduce the number of decimal places</span></span>
+<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a><span class="co">#increase number of decimal places to see significant p-values</span></span>
+<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a>rn_tibble <span class="ot">&lt;-</span> rn_fit <span class="sc">%&gt;%</span></span>
+<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a>                  workflowsets<span class="sc">::</span><span class="fu">extract_fit_parsnip</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb58-6"><a href="#cb58-6" aria-hidden="true" tabindex="-1"></a>                  broom<span class="sc">::</span><span class="fu">tidy</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb58-7"><a href="#cb58-7" aria-hidden="true" tabindex="-1"></a>                  dplyr<span class="sc">::</span><span class="fu">mutate_if</span>(is.numeric, round, <span class="dv">6</span>)</span>
+<span id="cb58-8"><a href="#cb58-8" aria-hidden="true" tabindex="-1"></a>rn_tibble</span></code></pre></div>
+<pre><code>## # A tibble: 2 x 5
+##   term         estimate std.error statistic p.value
+##   &lt;chr&gt;           &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;
+## 1 (Intercept)    99.1      0.0964   1028.    0     
+## 2 RunnyNoseYes   -0.261    0.114      -2.29  0.0225</code></pre>
+<div class="sourceCode" id="cb60"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="co">#predict the nausea variable using the test data</span></span>
+<span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a>stats<span class="sc">::</span><span class="fu">predict</span>(rn_fit, test_data)</span></code></pre></div>
+<pre><code>## # A tibble: 183 x 1
+##    .pred
+##    &lt;dbl&gt;
+##  1  99.1
+##  2  98.9
+##  3  98.9
+##  4  98.9
+##  5  99.1
+##  6  99.1
+##  7  98.9
+##  8  99.1
+##  9  99.1
+## 10  99.1
+## # ... with 173 more rows</code></pre>
+<div class="sourceCode" id="cb62"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="co">#warning is expected as there are colinear/nested variables contained in the dataset</span></span>
+<span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a><span class="co">#predict the probability rather than just the category of variable</span></span>
+<span id="cb62-4"><a href="#cb62-4" aria-hidden="true" tabindex="-1"></a>rn_aug_test <span class="ot">&lt;-</span> tune<span class="sc">::</span><span class="fu">augment</span>(rn_fit, test_data)</span>
+<span id="cb62-5"><a href="#cb62-5" aria-hidden="true" tabindex="-1"></a><span class="co">#warning is expected as there are colinear/nested variables contained in the dataset</span></span></code></pre></div>
+<hr />
+</div>
+<div id="linear-model-comparison" class="section level3">
+<h3>Linear Model Comparison</h3>
+<p>We can compare the models using root mean squared error (RMSE).</p>
+<div class="sourceCode" id="cb63"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a><span class="co">#use RMSE to evaluate linear model</span></span>
+<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a>rn_error <span class="ot">&lt;-</span> rn_aug_test <span class="sc">%&gt;%</span> </span>
+<span id="cb63-4"><a href="#cb63-4" aria-hidden="true" tabindex="-1"></a>  yardstick<span class="sc">::</span><span class="fu">rmse</span>(<span class="at">truth =</span> BodyTemp, .pred)</span>
+<span id="cb63-5"><a href="#cb63-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb63-6"><a href="#cb63-6" aria-hidden="true" tabindex="-1"></a>rn_error<span class="sc">$</span>title <span class="ot">&lt;-</span> <span class="st">&quot;Error for Runny Nose Model&quot;</span></span>
+<span id="cb63-7"><a href="#cb63-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb63-8"><a href="#cb63-8" aria-hidden="true" tabindex="-1"></a>error <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(bt_error,rn_error)</span>
+<span id="cb63-9"><a href="#cb63-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb63-10"><a href="#cb63-10" aria-hidden="true" tabindex="-1"></a>error</span></code></pre></div>
+<pre><code>## # A tibble: 2 x 4
+##   .metric .estimator .estimate title                     
+##   &lt;chr&gt;   &lt;chr&gt;          &lt;dbl&gt; &lt;chr&gt;                     
+## 1 rmse    standard        1.15 Error for all variables   
+## 2 rmse    standard        1.13 Error for Runny Nose Model</code></pre>
+<p>The RMSE for the Runny Nose model is slightly lower than the RMSE for the model which tests all variables, so we can conclude that it is slightly better at predicting body temperature.</p>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
