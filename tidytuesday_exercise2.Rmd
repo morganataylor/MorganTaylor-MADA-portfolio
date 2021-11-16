@@ -8,8 +8,499 @@ output:
 
 <br>
 
-We are participating in week 47 of TidyTuesday! The following analysis uses the TidyTuesday template called by "tidytuesdayR::use_tidytemplate()".
+## Introduction
 
-To be completed week of 11/16/21
+The following exercise is for [Module 13 in Dr. Andreas Handel's MADA Course](https://andreashandel.github.io/MADAcourse/Assessment_Complete_Workflow.html). We are using the [Marble Racing dataset](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-06-02/), which is a previous TidyTuesday dataset from the week of 06/02/2020.
+
+<br>
+
+This analysis will follow these steps:
+
+1. Load, wrangle, and explore the data.
+2. Formulate a question / hypothesis, and determine outcome (and predictors as applicable) of interest.
+3. Further data processing and cleaning. 
+4. Split data into train / test subsets.
+5. Fit at least 4 different ML models to the data using the `tidymodels` framework.
+6. Choose the overall best model.
+7. Evaluate the chosen model on the test data.
+7. Discussion summary.
+
+<br>
+
+A few comments about notation and documentation throughout this markdown:
+
+* each iteration of data processing will be called `marbles_#`
+* the final processed dataset will be saved as `marbles_processed` in the `data` folder in the GitHub repository for this website
+
+<br>
+
+Let's get started!
+
 
 ---
+
+## Required Packages
+The following R packages are required for this analysis:
+## Required Packages
+The following R packages are required for this exercise:
+
+* here: for data loading/saving
+* summarytools: for overall dataframe summaries
+* skimr: for variable summaries
+* tidyverse: for data management
+* lubridate: for wrangling date variables
+* ggplot2: for plotting data
+* tidymodels: for data modeling
+* broom.mixed: for converting bayesian models to tidy tibbles
+* rpart.plot: for visualizing a decision tree
+* vip: for variable importance plots
+* glmnet: for lasso models
+* doParallel: for parallel backend for tuning processes
+* ranger: for random forest models
+```{r libraries, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#libraries required
+library(here) #for data loading/saving
+library(tidyverse) #for data management
+library(lubridate) #for wrangling date variables
+library(tidymodels) #for data modeling
+library(skimr) #for variable summaries
+library(summarytools) #for overall dataframe summaries
+library(ggplot2) #for plotting data
+library(broom.mixed) #for converting bayesian models to tidy tibbles
+library(rpart.plot) #for visualizing a decision tree
+library(vip) #for variable importance plots
+library(glmnet) #for lasso methods
+library(doParallel) #for parallel backend tuning
+library(ranger) #for random forest models
+
+#fix doParallel error
+unregister_dopar <- function() {
+     env <- foreach:::.foreachGlobals
+     rm(list=ls(name=env), pos=env)
+}
+```
+
+---
+
+## Load Data
+The code to load the data is referenced in the GitHub repository linked above. It is also stored in the `data` folder in the GitHub repository for this website (linked in the top right corner of the page).
+```{r load data}
+#using the website link
+marbles <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-06-02/marbles.csv')
+
+#save the raw csv to the `data` folder
+raw_data_location <- here::here("data", "tidytuesday2", "marbles_raw.csv")
+marbles_raw <- utils::write.csv(marbles, raw_data_location)
+```
+
+---
+
+## Data Background
+From the [readme.md on GitHub](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-06-02/readme.md), this week's data comes from [Randy Olson's compilation](http://www.randalolson.com/2020/05/24/a-data-driven-look-at-marble-racing/) of [Jelle's Marble Runs](https://www.youtube.com/channel/UCYJdpnjuSWVOLgGT9fIzL0g).
+
+The description of the data from Randy Olson's blogpost is as follows:
+>"Jelle’s Marble Runs started as a quirky YouTube channel back in 2006 and has refined the art of marble racing to the point that many — including sponsor John Oliver from Last Week Tonight — consider marble racing a legitimate contender for the national sports spotlight. Given that Jelle’s Marble Runs just completed their popular Marbula One competition last month, I was curious to look at the race results to see if these races were anything more than chaos.
+>
+>Do some marbles race better than others? Who would I put my money on in season 2 of Marbula One? ... If any of these questions interest you, read on and I’ll answer some of them.
+>
+>The first step to answering these questions was to get some data. Thankfully, all of the Marbula One videos are organized in a YouTube playlist available here. From every race, my marble racing analytics team recorded each marble racer’s qualifier performance, total race time, average lap time, final rank, and some other statistics. That dataset is available for download on my website here."
+
+The data dictionary is described in the readme.md in the repository, but is also replicated below for reference in the analysis.
+```{r data dictionary}
+#create data dictionary dataframe
+variable <- c("date", "race", "site", "source", "marble_name", "team_name", "time_s", "pole", "points", "track_length_m", "number_laps", "avg_time_lap", "host", "notes")
+class <- c("character", "character", "character", "character", "character", "character", "double", "character", "double", "double", "double", "double", "character", "character")
+description <- c("date of race", "race id", "site of race", "youtube url", "name of marble", "team name", "time in seconds", "pole position", "points gained", "track length in meters", "number of laps", "average lap time", "host of race", "notes (very few, but some notes about potential errors")
+
+data_dictionary <- data.frame(variable, class, description)
+print(data_dictionary)
+```
+
+I wanted to better understand the pole position and points gained variables, as I assumed they are unique to the sport of marble racing.
+
+After some digging on the [Jelle's Marble Runs Fandom WikiPage](https://jellesmarbleruns.fandom.com/wiki/Marbula_One#Points_System), the points system for season 1 is designed to be identical to Formula One racing:
+
+* 1st place: 25 points
+* 2nd place: 18 points
+* 3rd place: 15 points
+* 4th place: 12 points
+* 5th place: 10 points
+* 6th place: 8 points
+* 7th place: 6 points
+* 8th place: 4 points
+* 9th place: 2 points
+* 10th place: 1 point
+* 11th through 16th place: 0 points
+* Did not finish: 0 points
+* The marble who completes the course with the fastest time: 1 bonus point
+
+Just in case we need it later, let's create a dataframe for points definitions.
+```{r point dictionary}
+value <- c(25, 18, 15, 12, 10, 8, 6, 4, 2, 1, 0, 0, 0, 0, 0, 0)
+place <- c("1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "10th", "11th", "12th", "13th", "14th", "15th", "16th")
+
+points_dictionary <- data.frame(value, place)
+print(points_dictionary)
+```
+
+In motorsports, the pole position is the position at the front at the start of a racing event. That position is typically given to the vehicle and driver with the best qualifying time in the trials before the race. In this dataset, the `pole` variable appears to correspond to the positioning at the beginning of the race.
+
+---
+
+## Data Overview
+
+Take an initial look at the raw data. Start by using `utils::str()`.
+
+```{r data overview 1}
+#data structure
+utils::str(marbles)
+```
+
+This confirms imported data classes are correct and match the data dictionary.
+
+<br>
+
+Now use base R function `summary()`.
+
+```{r data overview 2}
+#data summary
+summary(marbles)
+```
+
+There are 128 NA's in points, 3 NA's in avg_time_lap. Perhaps the NA's in `avg_time_lap` correspond to those that didn't finish the race? In this output, we can't see any information about the character variables.
+
+<br>
+
+Now use `summarytools::dfsummary()` as it lets us see the distribution of variables.
+
+```{r data overview 3}
+#dataframe summary
+summarytools::dfSummary(marbles)
+```
+
+A few conclusions from this output:
+
+* Each date and each race number are repeated 16 times. 
+* To that end, each race site is repeated twice, for a total of 8 sites. 
+* There are 32 marble names, each repeated 8 times.
+* There are 16 teams, each repeated 16 times.
+* There are 3 NA's for time of race and average lap time -- we will need to investigate why they're missing (perhaps because they didn't finish the race?)
+* There are 16 values of pole position, which suggests 16 marbles competed in each race.
+* The 50% missing rate for `pole` and `points` suggests that there are two rows for each race (opportunity to concatenate the rows)
+* Each track length is repeated 32 times, with 8 unique variables.
+* Number of laps ranges from 1 to 16.
+* The average lap time seems relatively normally distributed.
+* There are 16 hosts.
+* There are 7 notes that will require investigation during the cleaning process.
+ 
+All of this information together suggests there were 16 teams competing in 8 races for Season 1 of Marbula One. Each race was held at a different track, and there was a host team for each race. The first date for each race is the qualifying race date, and the second date is the actual race.
+
+<br>
+
+Let's use the `skimr::skim()` function to summarize the conclusions we drew from the dataframe summary.
+
+```{r data overview 4}
+#skimr output
+skimr::skim(marbles)
+```
+
+---
+
+## Data Cleaning
+Based on the examination of the data so far, there are a few immediately obvious steps for cleaning the data:
+
+1. Create new variables for qualifying vs race times and average lap times. 
+2. Investigate the 7 values of the `notes` variable. 
+3. Replace `race` and `date` variable with a new `race_number` variable.
+4. Drop meaningless variables (e.g. `source`, `notes`, `avg_lap_time`, `time_s`).
+5. Concatenate the values of qualifying and actual race variables, so that there is only one row for each race and team combination.
+
+<br>
+
+Let's start with step #1: create new variables to specify race vs qualifying times. There are a number of ways to do this, but I'm going to use the fact that `pole` is NA for actual races and `points` is NA for qualifying races.
+
+```{r data cleaning 1}
+#create shadow df to not manipulate the raw df
+marbles_1 <- marbles
+
+#for race time in seconds
+marbles_1$qual_time <- ifelse(is.na(marbles_1$points), marbles_1$time_s, NA)
+marbles_1$race_time <- ifelse(is.na(marbles_1$pole), marbles_1$time_s, NA)
+
+#for average lap length
+marbles_1$qual_avg_lap <- ifelse(is.na(marbles_1$points), marbles_1$avg_time_lap, NA)
+marbles_1$race_avg_lap <- ifelse(is.na(marbles_1$pole), marbles_1$avg_time_lap, NA)
+```
+
+<br>
+
+Moving onto step #2: investigate the 7 `notes` values.
+
+```{r data cleaning 2}
+#print the notes
+marbles_1$notes[!is.na(marbles_1$notes)]
+
+#are they associated with different races / teams?
+marbles_1[!(is.na(marbles_1$notes)), ]
+
+#since each note represents a different race / team, we can leave the notes and let them be combined
+# I prefer to keep the notes in case we need to explain any anomalies in the data
+```
+
+<br>
+
+Next, step 3: Replace `race` and `date` variable with a new `race_number` variable. We can do this by extracting the 4th character in the `race` variable, which will tell us the race number.
+
+```{r data cleaning 3}
+#just using base R `substr` function to specify finding the 4th value and then selecting the 4th value
+marbles_1$race_number <- substr(marbles_1$race, 4, 4)
+
+marbles_2 <- marbles_1 %>%
+                dplyr::select(-c(date, race, source, time_s, avg_time_lap))
+```
+
+<br>
+
+Moving onto step 4: drop irrelevant variables. This is to avoid confusing R when we collapse the rows.
+
+```{r data cleaning 4}
+#drop date, race, source, time_s, avg_time_lap
+marbles_2 <- marbles_1 %>%
+                dplyr::select(-c(date, race, source, time_s, avg_time_lap))
+
+#reorder columns
+marbles_3 <- marbles_2[, c(14, 1:3, 6:8, 4, 10, 12, 5, 11, 13, 9)]
+
+#create filtered subset for qualifying data
+marbles_4 <- marbles_3 %>%
+              dplyr::select(-c(points, race_time, race_avg_lap)) %>%
+              dplyr::filter(!is.na(pole)) %>%
+              dplyr::rename(notes_1 = notes)
+
+#create filtered subset for race data
+marbles_5 <- marbles_3 %>%
+              dplyr::select(-c(pole, qual_time, qual_avg_lap)) %>%
+              dplyr::filter(!is.na(points)) %>%
+              dplyr::rename(notes_2 = notes)
+
+#bind the columns
+marbles_6 <- cbind(marbles_4, marbles_5)
+
+#remove duplicate columns
+marbles_7 <- marbles_6 %>%
+              dplyr::select(-c(12:18))
+
+#combine notes columns
+marbles_8 <- marbles_7 %>%
+              dplyr::mutate(notes = dplyr::coalesce(notes_1, notes_2)) %>%
+              dplyr::select(-c(notes_1, notes_2))
+
+```
+
+<br>
+
+The big step, #5: combine all the rows such that there is only one row per race / team.
+
+```{r data cleaning 5}
+#drop date, race, source, time_s, avg_time_lap
+marbles_2 <- marbles_1 %>%
+                dplyr::select(-c(date, race, source, time_s, avg_time_lap))
+
+#reorder columns
+marbles_3 <- marbles_2[, c(14, 1:3, 6:8, 4, 10, 12, 5, 11, 13, 9)]
+
+#create filtered subset for qualifying data
+marbles_4 <- marbles_3 %>%
+              dplyr::select(-c(points, race_time, race_avg_lap)) %>%
+              dplyr::filter(!is.na(pole)) %>%
+              dplyr::rename(notes_1 = notes)
+
+#create filtered subset for race data
+marbles_5 <- marbles_3 %>%
+              dplyr::select(-c(pole, qual_time, qual_avg_lap)) %>%
+              dplyr::filter(!is.na(points)) %>%
+              dplyr::rename(notes_2 = notes)
+
+#bind the columns
+marbles_6 <- cbind(marbles_4, marbles_5)
+
+#remove duplicate columns
+marbles_7 <- marbles_6 %>%
+              dplyr::select(-c(1:7))
+
+#combine notes columns
+marbles_8 <- marbles_7 %>%
+              dplyr::mutate(notes = dplyr::coalesce(notes_1, notes_2)) %>%
+              dplyr::select(-c(notes_1, notes_2))
+
+#reorder columns
+marbles_9 <- marbles_8[, c(4:10, 1:3, 12, 13, 11, 14)]
+
+```
+
+We now have a cleaned dataset that has one row per race/team and includes information about qualifying and actual races. Let's look at the dataframe summary.
+
+```{r data cleaning 6}
+summarytools::dfSummary(marbles_9)
+```
+
+---
+
+## Feature Engineering
+There are a few variables that might be interesting to create based on the data:
+
+1. Total points for the season for each team
+2. Final placement ranking for the season for each team
+3. The number of times in the season a bonus point was awarded for fastest lap for each team
+4. The cumulative points throughout the season for each team
+5. Ranking throughout the season for each team
+6. Difference in time between qualifying and actual races.
+
+For the season-long characteristics, I'm going to create a new season summary dataframe, and then I will merge it back into the original dataframe at the end of this section.
+
+<br>
+
+Let's start with #1: find total points for the season for each team. 
+
+```{r feature engineering 1}
+#sum the points by team_name
+season_stats <- marbles_9 %>%
+                  dplyr::filter(!is.na(points)) %>%
+                  dplyr::group_by(team_name) %>%
+                  dplyr::summarise(total_points = sum(points))
+```
+
+<br>
+
+Next, step #2: final season rankings
+
+```{r feature engineering 2}
+#create a variable that is the rank order of the total_points variable
+season_stats_1 <- season_stats %>%
+                    dplyr::mutate(team_rank = rank(desc(total_points),
+                                                     ties.method = "min"))
+```
+
+<br>
+
+Moving onto #3, finding the number of times a team had the fastest lap in a season
+
+```{r feature engineering 3}
+#count number of each times each points value occurs for each team
+fastest_lap_counts <- marbles_9 %>%
+                        dplyr::count(team_name, points)
+
+#filter out the values that do not match the points dictionary
+#count the number of times each time occurs in the filtered list
+fastest_lap_counts_1 <- fastest_lap_counts %>%
+                          dplyr::filter(!(points %in% points_dictionary$value)) %>%
+                          dplyr::count(team_name)
+
+#merge into season stats df
+season_stats_2 <- merge(season_stats_1, fastest_lap_counts_1, all = TRUE)
+
+#replace NA with 0
+season_stats_2[is.na(season_stats_2)] <- 0
+
+#relabel n
+names(season_stats_2)[4] <- "fastest_lap_count"
+```
+
+<br>
+
+Now we need to combine the `season_stats` dataframe into the `marbles_9` dataframe.
+
+```{r feature engineering 4}
+marbles_10 <- merge(marbles_9, season_stats_2)
+```
+
+<br>
+
+Next, #4, let's calculate the current total number of points at the beginning of each race. In other words, finding the cumulative points throughout the season.
+
+```{r feature engineering 5}
+#fix class of race_number
+as.numeric(marbles_10$race_number)
+
+#I have no idea why this works but it does
+marbles_11 <- marbles_10 %>%
+                dplyr::group_by(race_number, team_name) %>%
+                dplyr::arrange(race_number, team_name) %>%
+                dplyr::mutate(cumsum = cumsum(points)) %>%
+                dplyr::group_by(team_name) %>%
+                dplyr::mutate(current_points = cumsum(cumsum)) %>%
+                dplyr::ungroup() %>%
+                dplyr::select(-cumsum)
+```
+
+<br>
+
+Moving onto #5, find the current ranking after each race throughout the season.
+
+```{r feature engineering 6}
+#find the points after each race
+marbles_12 <- marbles_11 %>%
+                dplyr::group_by(race_number) %>%
+                dplyr::mutate(current_rank = rank(desc(current_points),
+                                                  ties.method = "min"))
+```
+
+<br>
+
+Lastly, #6, find the differences in time between the qualifying and actual races. The qualifying races are only 1 lap each, so it's really only meaningful to find the difference in average lap times.
+
+```{r feature engineering 7}
+marbles_12$time_diff <- marbles_12$race_avg_lap - marbles_12$qual_avg_lap
+```
+
+In reflection, probably didn't need to create final variables, but it's too hard to fix the code now. So we can just remove any unimportant variables and rearrange the columns to make a pretty, organized dataframe.
+
+```{r feature engineering 8}
+marbles_processed <- marbles_12 %>%
+                        dplyr::select(race_number,
+                                      site,
+                                      track_length_m,
+                                      number_laps,
+                                      team_name,
+                                      host,
+                                      marble_name,
+                                      pole,
+                                      qual_time,
+                                      race_time,
+                                      race_avg_lap,
+                                      time_diff,
+                                      points,
+                                      current_points,
+                                      current_rank,
+                                      fastest_lap_count,
+                                      notes)
+```
+
+---
+
+## Save Processed Data
+For future reference, I'm saving the processed data and the updated the data dictionary as a .Rds in the `data` folder in the GitHub repository for this website.
+
+```{r save processed data}
+#location to save file
+save_data_location <- here::here("data", "tidytuesday2", "processeddata.rds")
+
+#save processed data as .rds
+saveRDS(marbles_processed, file = save_data_location)
+
+#create new data dictionary
+variable <- c("race_number", "site", "track_length_m", "number_laps", "team_name", "host", "marble_name", "pole", "qual_time", "race_time", "race_avg_lap", "time_diff", "points", "current points", "current_rank", "fastest_lap_count", "notes")
+class <- c("character", "character", "number", "number", "character", "character", "character", "character", "number", "number", "number", "number", "number", "number", "integer", "number", "character")
+description <- c("number of the race in the season", "race location", "length of the track in meters", "number of laps for the site", "team name", "whether or not the team hosted the race", "marble name", "starting position determined by qualifying rounds", "qualifying time", "race time", "average time per lap in race", "difference in average lap time between race and qualifying times", "points earned for the race", "cumulative points at the end of each race", "rank in the league at the end of each race", "number of times the team had the fastest lap in the season", "notes (very few, but some notes about potential errors")
+
+data_dictionary_2 <- data.frame(variable, class, description)
+print(data_dictionary_2)
+
+#location to save data dictionary
+save_dictionary_location <- here::here("data", "tidytuesday2", "datadictionary.rds")
+
+#save data dictionary as .rds
+saveRDS(data_dictionary_2, file = save_dictionary_location)
+```
+
