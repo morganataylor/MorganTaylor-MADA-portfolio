@@ -50,6 +50,7 @@ The following R packages are required for this exercise:
 * tidyverse: for data management
 * lubridate: for wrangling date variables
 * ggplot2: for plotting data
+* RColorBrewer: for coloring the plots
 * tidymodels: for data modeling
 * broom.mixed: for converting bayesian models to tidy tibbles
 * rpart.plot: for visualizing a decision tree
@@ -67,6 +68,7 @@ library(tidymodels) #for data modeling
 library(skimr) #for variable summaries
 library(summarytools) #for overall dataframe summaries
 library(ggplot2) #for plotting data
+library(RColorBrewer) #for coloring the plots
 library(broom.mixed) #for converting bayesian models to tidy tibbles
 library(rpart.plot) #for visualizing a decision tree
 library(vip) #for variable importance plots
@@ -265,36 +267,13 @@ marbles_2 <- marbles_1 %>%
 Moving onto step 4: drop irrelevant variables. This is to avoid confusing R when we collapse the rows.
 
 ```{r data cleaning 4}
+
 #drop date, race, source, time_s, avg_time_lap
 marbles_2 <- marbles_1 %>%
                 dplyr::select(-c(date, race, source, time_s, avg_time_lap))
 
 #reorder columns
 marbles_3 <- marbles_2[, c(14, 1:3, 6:8, 4, 10, 12, 5, 11, 13, 9)]
-
-#create filtered subset for qualifying data
-marbles_4 <- marbles_3 %>%
-              dplyr::select(-c(points, race_time, race_avg_lap)) %>%
-              dplyr::filter(!is.na(pole)) %>%
-              dplyr::rename(notes_1 = notes)
-
-#create filtered subset for race data
-marbles_5 <- marbles_3 %>%
-              dplyr::select(-c(pole, qual_time, qual_avg_lap)) %>%
-              dplyr::filter(!is.na(points)) %>%
-              dplyr::rename(notes_2 = notes)
-
-#bind the columns
-marbles_6 <- cbind(marbles_4, marbles_5)
-
-#remove duplicate columns
-marbles_7 <- marbles_6 %>%
-              dplyr::select(-c(12:18))
-
-#combine notes columns
-marbles_8 <- marbles_7 %>%
-              dplyr::mutate(notes = dplyr::coalesce(notes_1, notes_2)) %>%
-              dplyr::select(-c(notes_1, notes_2))
 
 ```
 
@@ -303,12 +282,6 @@ marbles_8 <- marbles_7 %>%
 The big step, #5: combine all the rows such that there is only one row per race / team.
 
 ```{r data cleaning 5}
-#drop date, race, source, time_s, avg_time_lap
-marbles_2 <- marbles_1 %>%
-                dplyr::select(-c(date, race, source, time_s, avg_time_lap))
-
-#reorder columns
-marbles_3 <- marbles_2[, c(14, 1:3, 6:8, 4, 10, 12, 5, 11, 13, 9)]
 
 #create filtered subset for qualifying data
 marbles_4 <- marbles_3 %>%
@@ -356,6 +329,7 @@ There are a few variables that might be interesting to create based on the data:
 4. The cumulative points throughout the season for each team
 5. Ranking throughout the season for each team
 6. Difference in time between qualifying and actual races.
+7. Average marble speed during the race.
 
 For the season-long characteristics, I'm going to create a new season summary dataframe, and then I will merge it back into the original dataframe at the end of this section.
 
@@ -448,15 +422,22 @@ marbles_12 <- marbles_11 %>%
 
 <br>
 
-Lastly, #6, find the differences in time between the qualifying and actual races. The qualifying races are only 1 lap each, so it's really only meaningful to find the difference in average lap times.
+Next, #6, find the differences in time between the qualifying and actual races. The qualifying races are only 1 lap each, so it's really only meaningful to find the difference in average lap times.
 
 ```{r feature engineering 7}
 marbles_12$time_diff <- marbles_12$race_avg_lap - marbles_12$qual_avg_lap
 ```
 
-In reflection, probably didn't need to create final variables, but it's too hard to fix the code now. So we can just remove any unimportant variables and rearrange the columns to make a pretty, organized dataframe.
+<br>
 
+Lastly, #7, calculating the speed of the marble in each race. We have variables that represent track length in m, the number of laps, and race time in seconds, so we can simply divide the two to calculate the speed in meters per second.
 ```{r feature engineering 8}
+marbles_12$speed <- (marbles_12$track_length_m * marbles_12$number_laps) / marbles_12$race_time
+```
+
+We can now remove any unimportant variables and rearrange the columns to make a pretty, organized dataframe.
+
+```{r feature engineering 9}
 marbles_processed <- marbles_12 %>%
                         dplyr::select(race_number,
                                       site,
@@ -469,10 +450,13 @@ marbles_processed <- marbles_12 %>%
                                       qual_time,
                                       race_time,
                                       race_avg_lap,
+                                      speed,
                                       time_diff,
                                       points,
                                       current_points,
                                       current_rank,
+                                      total_points,
+                                      team_rank,
                                       fastest_lap_count,
                                       notes)
 ```
@@ -490,9 +474,9 @@ save_data_location <- here::here("data", "tidytuesday2", "processeddata.rds")
 saveRDS(marbles_processed, file = save_data_location)
 
 #create new data dictionary
-variable <- c("race_number", "site", "track_length_m", "number_laps", "team_name", "host", "marble_name", "pole", "qual_time", "race_time", "race_avg_lap", "time_diff", "points", "current points", "current_rank", "fastest_lap_count", "notes")
-class <- c("character", "character", "number", "number", "character", "character", "character", "character", "number", "number", "number", "number", "number", "number", "integer", "number", "character")
-description <- c("number of the race in the season", "race location", "length of the track in meters", "number of laps for the site", "team name", "whether or not the team hosted the race", "marble name", "starting position determined by qualifying rounds", "qualifying time", "race time", "average time per lap in race", "difference in average lap time between race and qualifying times", "points earned for the race", "cumulative points at the end of each race", "rank in the league at the end of each race", "number of times the team had the fastest lap in the season", "notes (very few, but some notes about potential errors")
+variable <- c("race_number", "site", "track_length_m", "number_laps", "team_name", "host", "marble_name", "pole", "qual_time", "race_time", "race_avg_lap", "speed", "time_diff", "points", "current points", "current_rank", "total_points", "team_rank", "fastest_lap_count", "notes")
+class <- c("character", "character", "number", "number", "character", "character", "character", "character", "number", "number", "number", "number", "number", "number", "number", "integer", "number", "integer", "number", "character")
+description <- c("number of the race in the season", "race location", "length of the track in meters", "number of laps for the site", "team name", "whether or not the team hosted the race", "marble name", "starting position determined by qualifying rounds", "qualifying time", "race time", "average time per lap in race", "average speed of marble in the actual race", "difference in average lap time between race and qualifying times", "points earned for the race", "cumulative points at the end of each race", "rank in the league at the end of each race", "total season points for the team", "final team ranking at the end of the season", "number of times the team had the fastest lap in the season", "notes (very few, but some notes about potential errors")
 
 data_dictionary_2 <- data.frame(variable, class, description)
 print(data_dictionary_2)
@@ -504,3 +488,169 @@ save_dictionary_location <- here::here("data", "tidytuesday2", "datadictionary.r
 saveRDS(data_dictionary_2, file = save_dictionary_location)
 ```
 
+---
+
+## Data Exploration
+Now that we've created a cleaned and processed dataset, let's do some exploration. In lieu of following a formal exploratory data analysis flow, there are a few figures to create that will illustrate the data:
+
+1. Marble names and team names
+2. Competition points for each team throughout the season
+3. Total competition points for each marble for each team
+5. Competition points for each team at each race location
+6. Team rankings throughout the season
+7. Scatterplot comparing competition points against marble speed (for each race location)
+8. Pairwise correlation matrix
+
+<br>
+
+To start, create a figure that shows marble names assigned to each team.
+```{r data exploration 1}
+#we can use a barplot and a facet wrap to accomplish this
+marble_names_plot <- marbles_processed %>%
+                        dplyr::group_by(team_name, marble_name) %>%
+                        dplyr::count() %>%
+                        ggplot2::ggplot(aes(x = marble_name, 
+                                            y = n, 
+                                            fill = team_name)) +
+                                 geom_bar(stat = "identity") +
+                                 geom_text(aes(label = marble_name),
+                                           vjust = 1.75, 
+                                           col = "black",
+                                           size = 4) +
+                                 facet_wrap(~ team_name,
+                                            scales = "free",
+                                            nrow = 8) +
+                                 theme_void() +
+                                 theme(legend.position = "none",
+                                       strip.text.x = element_text(size = 11))
+                                 
+marble_names_plot
+```
+
+<br>
+
+Next, plot competition points for each team throughout the season.
+```{r data exploration 2}
+team_points_plot <- marbles_processed %>%
+                        ggplot2::ggplot(aes(x = race_number,
+                                            y = current_points,
+                                            group = team_name,
+                                            color = team_name)) +
+                                 geom_line(size = 1) +
+                                 scale_y_continuous(expand = c(0,0),
+                                                    breaks = seq(0, 110, by = 10)) +
+                                 scale_x_discrete(expand = c(0, 0),
+                                                  labels = unique(marbles_processed$site)) +
+                                 labs(x = "Race",
+                                      y = "Cumulative Points") +
+                                 theme_classic() +
+                                 theme(legend.position = "none",
+                                       axis.text.x = element_text(angle = 90,
+                                                                  vjust = 0.5,
+                                                                  hjust = 1))
+                                 
+team_points_plot
+```
+
+<br>
+
+Now, plot total points earned by each marble for each team at the end of the season. We don't have the variable for points by marble created, but easy enough to include in the pre-processing before ggplot step.
+```{r data exploration 3}
+marble_points <- marbles_processed %>%
+                    dplyr::group_by(team_name, marble_name) %>%
+                    dplyr::summarise(marble_points = sum(points)) %>%
+                    dplyr::arrange(-marble_points) %>%
+                    ggplot2::ggplot(aes(x = reorder(marble_name, marble_points),
+                                        y = marble_points,
+                                        fill = team_name)) +
+                             geom_bar(stat = "identity") +
+                             facet_wrap(~ team_name,
+                                        scales = "free") +
+                             coord_flip() +
+                             labs(x = "Marble Name",
+                                  y = "\nTotal Points") +
+                             theme_minimal() +
+                             theme(legend.position = "none")
+
+marble_points
+```
+
+<br>
+
+To visualize points at each race location for each team, a grouped bar plot would get chaotic, and a facet_wrap would also be hard to interpret. What if we made a gradient matrix with points in each box?
+```{r data exploration 4}
+#using the points color scheme from the marble racing wiki page
+race_teams_plot <- marbles_processed %>%
+                     ggplot2::ggplot(aes(x = site,
+                                         y = team_name)) +
+                              geom_tile(aes(fill = points)) +
+                              scale_fill_gradientn(colours = c("#ffffbf",
+                                                               "#dfdfdf",
+                                                               "#ffdf9f",
+                                                               "#dfffdf",
+                                                               "#cfcfff"),
+                                                   values = scales::rescale(c(1, 0.7, 0.6, 0.3, 0))) +
+                              geom_text(aes(label = points)) +
+                              labs(x = "Race Location",
+                                   y = "Team Name") +
+                              theme_classic() +
+                              theme(axis.text.x = element_text(angle = 90,
+                                                               vjust = 0.3,
+                                                               hjust = 1))
+race_teams_plot
+```
+
+<br>
+
+Next, plot team rankings throughout the season. I took inspiration from [Cedric Scherer](https://twitter.com/CedScherer/status/1267929039437692929/photo/1).
+```{r data exploration 2}
+#in case next strategy doesn't work
+team_points_plot <- marbles_processed %>%
+                        ggplot2::ggplot(aes(x = race_number,
+                                            y = current_points,
+                                            group = team_name,
+                                            color = team_name)) +
+                                 geom_line(size = 1) +
+                                 scale_y_continuous(expand = c(0,0),
+                                                    breaks = seq(0, 110, by = 10)) +
+                                 scale_x_discrete(expand = c(0, 0),
+                                                  labels = unique(marbles_processed$site)) +
+                                 labs(x = "Race",
+                                      y = "Cumulative Points") +
+                                 theme_classic() +
+                                 theme(legend.position = "none",
+                                       axis.text.x = element_text(angle = 90,
+                                                                  vjust = 0.5,
+                                                                  hjust = 1))
+                                 
+team_points_plot
+
+#don't forget to go back and add ggbump to libraries if this works
+#trying using ggbump
+team_rank_plot <- marbles_processed %>%
+                    ggplot2::ggplot(aes(x = race_number,
+                                        y = current_rank,
+                                        group = team_name,
+                                        color = team_name)) +
+                             ggbump::geom_bump(smooth = 7,
+                                              size = 2.2) +
+                             geom_point(data = marbles_processed %>% dplyr::filter(race_number == 1),
+                                        size = 5) +
+                             geom_point(data = marbles_processed %>% dplyr::filter(race_number == 8),
+                                        size = 5,
+                                        shape = 21,
+                                        fill = "black",
+                                        stroke = 2) +
+                             geom_text(aes(label = team_rank),
+                                       size = 5,
+                                       hjust = 1) +
+                             coord_cartesian(clip = "off") +
+                             scale_x_discrete(expand = c(.001, .001),
+                                              limits = c(1, 8.5),
+                                              labels = glue::glue("Race {1:8}")) +
+                             scale_y_reverse(expand = c(.03, .03),
+                                             breaks = 1:16)
+                             
+team_rank_plot
+  
+```
