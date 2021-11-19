@@ -12,7 +12,7 @@ output:
 
 The following exercise is for [Module 13 in Dr. Andreas Handel's MADA Course](https://andreashandel.github.io/MADAcourse/Assessment_Complete_Workflow.html). We are using the [Marble Racing dataset](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-06-02/), which is a previous TidyTuesday dataset from the week of 06/02/2020.
 
-<br>
+---
 
 This analysis will follow these steps:
 
@@ -25,7 +25,28 @@ This analysis will follow these steps:
 7. Evaluate the chosen model on the test data.
 7. Discussion summary.
 
-<br>
+---
+
+This analysis fits the following models to the outcome of interest: 
+
+* Null Model
+* Decision Tree
+* Random Forest
+* Bagged Tree
+* LASSO 
+
+---
+
+Each machine learning model will follow this process:
+
+1. Model Specification
+2. Workflow Definition
+3. Tuning Grid Specification
+4. Tuning Using Cross-Validation and the `tune_grid()` function
+5. Identify Best Model
+6. Model Evaluation
+
+---
 
 A few comments about notation and documentation throughout this markdown:
 
@@ -51,6 +72,7 @@ The following R packages are required for this exercise:
 * lubridate: for wrangling date variables
 * ggplot2: for plotting data
 * RColorBrewer: for coloring the plots
+* ggbump: for creating bump plots
 * tidymodels: for data modeling
 * broom.mixed: for converting bayesian models to tidy tibbles
 * rpart.plot: for visualizing a decision tree
@@ -69,6 +91,7 @@ library(skimr) #for variable summaries
 library(summarytools) #for overall dataframe summaries
 library(ggplot2) #for plotting data
 library(RColorBrewer) #for coloring the plots
+library(ggbump) #for creating bump plots
 library(broom.mixed) #for converting bayesian models to tidy tibbles
 library(rpart.plot) #for visualizing a decision tree
 library(vip) #for variable importance plots
@@ -170,16 +193,17 @@ Now use base R function `summary()`.
 summary(marbles)
 ```
 
-There are 128 NA's in points, 3 NA's in avg_time_lap. Perhaps the NA's in `avg_time_lap` correspond to those that didn't finish the race? In this output, we can't see any information about the character variables.
+There are 128 NAs in points, 3 NAs in avg_time_lap. Perhaps the NAs in avg_time_lap correspond to those that didn't finish the race? In this output, we can't see any information about the character variables.
 
 <br>
 
-Now use `summarytools::dfsummary()` as it lets us see the distribution of variables.
+Now use `skim` as it lets us see the distribution of variables.
 
 ```{r data overview 3}
-#dataframe summary
-summarytools::dfSummary(marbles)
+#data summary
+skimr::skim(marbles)
 ```
+
 
 A few conclusions from this output:
 
@@ -197,15 +221,6 @@ A few conclusions from this output:
 * There are 7 notes that will require investigation during the cleaning process.
  
 All of this information together suggests there were 16 teams competing in 8 races for Season 1 of Marbula One. Each race was held at a different track, and there was a host team for each race. The first date for each race is the qualifying race date, and the second date is the actual race.
-
-<br>
-
-Let's use the `skimr::skim()` function to summarize the conclusions we drew from the dataframe summary.
-
-```{r data overview 4}
-#skimr output
-skimr::skim(marbles)
-```
 
 ---
 
@@ -315,7 +330,7 @@ marbles_9 <- marbles_8[, c(4:10, 1:3, 12, 13, 11, 14)]
 We now have a cleaned dataset that has one row per race/team and includes information about qualifying and actual races. Let's look at the dataframe summary.
 
 ```{r data cleaning 6}
-summarytools::dfSummary(marbles_9)
+skimr::skim(marbles_9)
 ```
 
 ---
@@ -496,10 +511,10 @@ Now that we've created a cleaned and processed dataset, let's do some exploratio
 1. Marble names and team names
 2. Competition points for each team throughout the season
 3. Total competition points for each marble for each team
-5. Competition points for each team at each race location
-6. Team rankings throughout the season
-7. Scatterplot comparing competition points against marble speed (for each race location)
-8. Pairwise correlation matrix
+4. Competition points for each team at each race location
+5. Team rankings throughout the season
+6. Scatterplot comparing competition points against marble speed (for each race location)
+7. Pairwise correlation matrix
 
 <br>
 
@@ -602,31 +617,9 @@ race_teams_plot
 
 <br>
 
-Next, plot team rankings throughout the season. I took inspiration from [Cedric Scherer](https://twitter.com/CedScherer/status/1267929039437692929/photo/1).
-```{r data exploration 2}
-#in case next strategy doesn't work
-team_points_plot <- marbles_processed %>%
-                        ggplot2::ggplot(aes(x = race_number,
-                                            y = current_points,
-                                            group = team_name,
-                                            color = team_name)) +
-                                 geom_line(size = 1) +
-                                 scale_y_continuous(expand = c(0,0),
-                                                    breaks = seq(0, 110, by = 10)) +
-                                 scale_x_discrete(expand = c(0, 0),
-                                                  labels = unique(marbles_processed$site)) +
-                                 labs(x = "Race",
-                                      y = "Cumulative Points") +
-                                 theme_classic() +
-                                 theme(legend.position = "none",
-                                       axis.text.x = element_text(angle = 90,
-                                                                  vjust = 0.5,
-                                                                  hjust = 1))
-                                 
-team_points_plot
-
-#don't forget to go back and add ggbump to libraries if this works
-#trying using ggbump
+Next, plot team rankings throughout the season.
+```{r data exploration 5}
+#If this was a real exercise, I would spend more time adjusting the formatting to make it prettier.
 team_rank_plot <- marbles_processed %>%
                     ggplot2::ggplot(aes(x = race_number,
                                         y = current_rank,
@@ -641,16 +634,948 @@ team_rank_plot <- marbles_processed %>%
                                         shape = 21,
                                         fill = "black",
                                         stroke = 2) +
-                             geom_text(aes(label = team_rank),
+                             geom_text(data = marbles_processed %>% dplyr::filter(race_number == 8),
+                                       aes(label = team_rank),
                                        size = 5,
-                                       hjust = 1) +
+                                       hjust = -1) +
                              coord_cartesian(clip = "off") +
                              scale_x_discrete(expand = c(.001, .001),
-                                              limits = c(1, 8.5),
                                               labels = glue::glue("Race {1:8}")) +
                              scale_y_reverse(expand = c(.03, .03),
-                                             breaks = 1:16)
+                                             breaks = 1:16) +
+                             theme_minimal() +
+                             labs(x = "",
+                                  y = "Team Rank") 
                              
 team_rank_plot
-  
 ```
+
+<br>
+
+Moving onto #6, a scatterplot of marble speed and points
+```{r data exploration 6}
+#only plot times where the marble earned a point
+speed_points <- marbles_processed %>% 
+                  dplyr::filter(points > 1) %>%
+                  ggplot2::ggplot(aes(x = points, 
+                                      y = speed)) +
+                  geom_point(col="blue") +
+                  facet_wrap(~ site, 
+                             scales = 'free') +
+                  theme_minimal() +
+                  labs(y = "Speed (m/s)",
+                       x = "Points")
+
+speed_points
+```
+
+<br>
+
+Lastly, before we can think about models, let's look at the pairwise scatter plot. We can only use the continuous variables, first subset the processed data, and then plot it.
+```{r data exploration 7}
+marbles_cont <- marbles_processed %>%
+                dplyr::select(race_number,
+                              track_length_m,
+                              number_laps,
+                              qual_time,
+                              race_time,
+                              race_avg_lap,
+                              speed,
+                              time_diff,
+                              points,
+                              current_points,
+                              current_rank,
+                              total_points,
+                              team_rank,
+                              fastest_lap_count)
+
+marbles_cont$race_number <- as.numeric(marbles_cont$race_number)
+marbles_cont$current_rank <- as.numeric(marbles_cont$current_rank)
+marbles_cont$team_rank <- as.numeric(marbles_cont$team_rank)
+
+pairs(marbles_cont)
+```
+So not super helpful...too many variables.
+
+---
+
+## Research Question
+
+What are the significant predictors in predicting team score at the end of the season?
+
+---
+
+## Outcome and Predictor(s) of Interest
+
+Outcome of interest: total team points at the end of the season (`total_points` in this code).
+
+Predictors of interest include:
+
+* race number
+* site
+* track length
+* number of laps
+* host
+* pole
+* qualifying time
+* race time
+* average lap time for race
+* speed of marble
+* difference in single lap time between qualifying and actual race
+* points earned at the race
+* cumulative season points
+* season rank
+* number of times in a season the team had a fastest lap
+
+I'm choosing to not include team or marble names, as it limits the applicability to other seasons/other groups.
+
+---
+
+## Further Cleaning / Processing
+We need to subset our processed data and adjust the variable formats before creating the machine learning models.
+```{r further cleaning 1}
+#drop the season-specific variables
+marbles_ML <- marbles_processed %>%
+                dplyr::select(-c(team_name,
+                                 marble_name,
+                                 team_rank,
+                                 notes))
+
+#adjust variable formats
+marbles_ML$race_number <- as.numeric(marbles_ML$race_number)
+marbles_ML$current_rank <- as.numeric(marbles_ML$current_rank)
+
+#remove the "P" from the pole variable.
+marbles_ML$pole <- as.numeric(stringr::str_sub(marbles_ML$pole, 2))
+
+#LASSO won't handle NA values, so replace NAs with 0 for the marbles that did not finish races
+marbles_ML[is.na(marbles_ML)] <- 0
+```
+
+---
+
+## Setting up the Data for Machine Learning
+Specify the following parameters:
+
+* Set the random seed to `123`
+* Split the dataset into 70% training, 30% testing, using `total_points` as the stratification variable
+* 5-fold cross validation, 5 times repeated, stratified on `total_points` for the CV folds
+* Create a recipe for the data and fitting that codes the two categorical variables as dummy variables
+
+```{r data set up for ML}
+#set random seed to 123
+set.seed(123)
+
+#split dataset into 70% training, 30% testing
+#use BodyTemp as stratification
+data_split <- rsample::initial_split(marbles_ML, prop = 7/10,
+                                     strata = total_points)
+
+#create dataframes for the two sets:
+train_data <- rsample::training(data_split)
+test_data <- rsample::testing(data_split)
+
+#5-fold cross validation, 5 times repeated, stratified on `total_points` for the CV folds
+folds <- rsample::vfold_cv(train_data,
+                           v = 5,
+                           repeats = 5,
+                           strata = total_points)
+  
+#create recipe that codes categorical variables as dummy variables
+marbles_rec <- recipes::recipe(total_points ~ ., data = train_data) %>%
+               recipes::step_dummy(all_nominal_predictors())
+```
+
+---
+
+## Null Model Performance
+Determine the performance of a null model (i.e. one with no predictors). For a continuous outcome and RMSE as the metric, a null model is one that predicts the mean of the outcome. Compute the RMSE for both training and test data for such a model.
+
+```{r null model}
+#create null model
+null_mod <- parsnip::null_model() %>%
+            parsnip::set_engine("parsnip") %>%
+            parsnip::set_mode("regression")
+
+#add recipe and model into workflow
+null_wflow <- workflows::workflow() %>%
+              workflows::add_recipe(marbles_rec) %>%
+              workflows::add_model(null_mod)
+
+#"fit" model to training data
+null_train <- null_wflow %>%
+                parsnip::fit(data = train_data)
+
+#summary of null model with training data to get mean (which in this case is the RMSE)
+null_train_sum <- broom.mixed::tidy(null_train)
+null_train_sum
+
+#RMSE for training data
+null_RMSE_train <- tibble::tibble(
+                      rmse = rmse_vec(truth = train_data$total_points,
+                                          estimate = rep(mean(train_data$total_points), nrow(train_data))),
+                      SE = 0,
+                      model = "Null - Train")
+
+#RMSE for testing data
+null_RMSE_test <- tibble::tibble(
+                      rmse = rmse_vec(truth = test_data$total_points,
+                                          estimate = rep(mean(test_data$total_points), nrow(test_data))),
+                      SE = 0,
+                      model = "Null - Test")
+
+```
+
+---
+
+## ML Model #1: Decision Tree Model
+
+Most of the code for this section comes from the [TidyModels Tutorial for Tuning](https://www.tidymodels.org/start/tuning/).
+
+### 1. Model Specification
+```{r}
+#run parallels to determine number of cores
+cores <- parallel::detectCores() - 1
+cores
+
+cl <- makeCluster(cores)
+
+registerDoParallel(cl)
+
+#define the tree model
+tree_mod <-
+  parsnip::decision_tree(cost_complexity = tune(),
+                         tree_depth = tune(),
+                         min_n = tune()) %>%
+  parsnip::set_engine("rpart") %>%
+  parsnip::set_mode("regression")
+
+#use the recipe specified earlier
+```
+
+<br>
+
+### 2. Workflow Definition
+```{r}
+#define workflow for tree
+tree_wflow <- workflows::workflow() %>%
+               workflows::add_model(tree_mod) %>%
+               workflows::add_recipe(marbles_rec)
+```
+
+<br>
+
+### 3. Tuning Grid Specification
+```{r}
+#tuning grid specification
+tree_grid <- dials::grid_regular(cost_complexity(),
+                                 tree_depth(),
+                                 min_n(),
+                                 levels = 5)
+
+#tree depth
+tree_grid %>%
+  dplyr::count(tree_depth)
+```
+
+<br>
+
+### 4. Tuning Using Cross-Validation and the `tune_grid()` function
+```{r}
+#tune the model with previously specified cross-validation and RMSE as target metric
+tree_res <- tree_wflow %>%
+                tune::tune_grid(resamples = folds,
+                                grid = tree_grid,
+                                control = control_grid(verbose = TRUE),
+                                metrics = yardstick::metric_set(rmse))
+
+#collect metrics
+tree_res %>% workflowsets::collect_metrics()
+
+#default visualization
+tree_res %>% autoplot()
+
+#more detailed plot
+tree_res %>%
+  workflowsets::collect_metrics() %>%
+  dplyr::mutate(tree_depth = factor(tree_depth)) %>%
+  ggplot2::ggplot(aes(cost_complexity, mean, color = tree_depth)) +
+           geom_line(size = 1.5, alpha = 0.6) +
+           geom_point(size = 2) +
+           facet_wrap(~ .metric, scales = "free", nrow = 2) +
+           scale_x_log10(labels = scales::label_number()) +
+           scale_color_viridis_d(option = "plasma", begin = 0.9, end = 0)
+```
+
+<br>
+
+### 5. Identify Best Model
+```{r}
+#select the tree model with the lowest rmse
+tree_lowest_rmse <- tree_res %>%
+                        tune::select_best("rmse")
+
+#finalize the workflow by using the selected lasso model
+best_tree_wflow <- tree_wflow %>%
+                      tune::finalize_workflow(tree_lowest_rmse)
+best_tree_wflow
+
+#one last fit on the training data
+best_tree_fit <- best_tree_wflow %>%
+                    parsnip::fit(data = train_data)
+```
+
+<br>
+
+### 6. Model evaluation
+```{r}
+#plot the tree
+rpart.plot::rpart.plot(x = workflowsets::extract_fit_parsnip(best_tree_fit)$fit,
+                       roundint = F,
+                       type = 5,
+                       digits = 5,
+                       main = "Selected Tree Model")
+
+#find predictions and intervals
+tree_resid <- best_tree_fit %>%
+                  broom.mixed::augment(new_data = train_data) %>%
+                  dplyr::select(.pred, total_points) %>%
+                  dplyr::mutate(.resid = .pred - total_points)
+
+#plot model predictions from tuned model versus actual outcomes
+#geom_abline draws a 45 degree line, along which the results should fall
+ggplot2::ggplot(tree_resid, aes(x = .pred, y = total_points)) +
+  geom_abline(slope = 1, intercept = 0, color = "red", lty = 2) + 
+  geom_point() +
+  labs(title = "Decision Tree Fit: Predicted vs. Actual Total Points",
+        x = "Predicted Total Points",
+        y = "Actual Total Points")
+
+#plot model with residuals
+#the geom_hline plots a straight horizontal line along which the results should fall
+ggplot2::ggplot(tree_resid, aes(x = as.numeric(row.names(tree_resid)), y = .resid))+
+  geom_hline(yintercept = 0, color = "red", lty = 2) +
+  geom_point() +
+  labs(title = "Decision Tree Fit: Residuals",
+        x = "Observation Number",
+        y = "Residual")
+
+#plot model fit vs residuals
+#the geom_hline plots a straight horizontal line along which the results fall
+ggplot2::ggplot(tree_resid, aes(x = .pred, y = .resid))+
+  geom_hline(yintercept = 0, color = "red", lty = 2) +
+  geom_point() +
+  labs(title = "Decision Tree Fit: Residuals vs Fitted Total Points",
+        x = "Fitted Total Points",
+        y = "Residual")
+
+#print model performance
+#print 10 best performing hyperparameter sets
+tree_res %>%
+  tune::show_best(n = 10) %>%
+  dplyr::select(rmse = mean, std_err, cost_complexity) %>%
+  dplyr::mutate(rmse = round(rmse, 3),
+                std_err = round(std_err, 4),
+                cost_complexity = scales::scientific(cost_complexity))
+
+#print the best model performance
+tree_performance <- tree_res %>% tune::show_best(n = 1)
+print(tree_performance)
+
+#compare model performance to null model
+tree_RMSE <- tree_res %>%
+                tune::show_best(n = 1) %>%
+                dplyr::transmute(
+                  rmse = round(mean, 3),
+                  SE = round(std_err, 4),
+                  model = "Tree") %>%
+               dplyr::bind_rows(null_RMSE_train)
+tree_RMSE
+```
+
+The identified best performing tree model includes current_rank, fastest_lap_count, current_points, and race_time as key predictor variables. In comparing the RMSE to the null model, this is about a 33% reduction in RMSE, so it's promising. Let's try some other models.
+
+<br>
+
+---
+
+<br>
+
+## LASSO Model
+Most of the code for this section comes from the [TidyModels Tutorial Case Study](https://www.tidymodels.org/start/case-study/).
+
+<br>
+
+### 1. Model Specification
+```{r}
+#define the lasso model
+#mixture = 1 identifies the model to be a LASSO model
+lasso_mod <-
+  parsnip::linear_reg(mode = "regression",
+                      penalty = tune(), 
+                      mixture = 1) %>%
+  parsnip::set_engine("glmnet")
+
+#use the recipe specified earlier
+```
+
+<br>
+
+### 2. Workflow Definition
+```{r}
+#define workflow for lasso regression
+lasso_wflow <- workflows::workflow() %>%
+               workflows::add_model(lasso_mod) %>%
+               workflows::add_recipe(marbles_rec)
+```
+
+<br>
+
+### 3. Tuning Grid Specification
+```{r}
+#tuning grid specification
+lasso_grid <- tibble(penalty = 10^seq(-3, 3, length.out = 30))
+
+#5 lowest penalty values
+lasso_grid %>%
+  dplyr::top_n(-5)
+
+#5 highest penalty values
+lasso_grid %>%
+  dplyr::top_n(5)
+```
+
+<br>
+
+### 4. Tuning Using Cross-Validation and the `tune_grid()` function
+```{r}
+#tune the model with previously specified cross-validation and RMSE as target metric
+lasso_res <- lasso_wflow %>%
+                tune::tune_grid(resamples = folds,
+                                grid = lasso_grid,
+                                control = control_grid(verbose = TRUE, 
+                                                       save_pred = TRUE),
+                                metrics = metric_set(rmse))
+
+#look at 15 models with lowest RMSEs
+top_lasso_models <- lasso_res %>%
+                      tune::show_best("rmse", n = 15) %>%
+                      dplyr::arrange(penalty)
+top_lasso_models
+
+#default visualization
+lasso_res %>% autoplot()
+
+#create a graph to see when there is a significant change in the penalty
+#this is the same as above, just a little more detail
+lasso_res %>%
+  workflowsets::collect_metrics() %>%
+  ggplot2::ggplot(aes(penalty, mean, color = .metric)) +
+  ggplot2::geom_errorbar(aes(ymin = mean - std_err,
+                             ymax = mean + std_err),
+                         alpha = 0.5) +
+  ggplot2::geom_line(size = 1.5) +
+  ggplot2::scale_x_log10()
+```
+
+<br>
+
+### 5. Identify Best Model
+```{r}
+#select the lasso model with the lowest rmse
+lasso_lowest_rmse <- lasso_res %>%
+                        tune::select_best("rmse")
+
+#finalize the workflow by using the selected lasso model
+best_lasso_wflow <- lasso_wflow %>%
+                      tune::finalize_workflow(lasso_lowest_rmse)
+best_lasso_wflow
+
+#one last fit on the training data
+best_lasso_fit <- best_lasso_wflow %>%
+                    parsnip::fit(data = train_data)
+
+#create a table of model fit that includes the predictors in the model
+#i.e. include all non-zero estimates
+lasso_tibble <- best_lasso_fit %>%
+                    workflowsets::extract_fit_parsnip() %>%
+                    broom::tidy() %>%
+                    dplyr::filter(estimate != 0) %>%
+                    dplyr::mutate_if(is.numeric, round, 4)
+lasso_tibble
+```
+
+<br>
+
+### 6. Model evaluation
+```{r}
+#extract model from final fit
+x_lasso <- best_lasso_fit$fit$fit$fit
+
+#plot how number of predictors included in LASSO model changes with the tuning parameter
+plot(x_lasso, "lambda")
+#the larger the regularization penalty, the fewer the predictors in the model
+
+#find predictions and intervals
+lasso_resid <- best_lasso_fit %>%
+                  broom.mixed::augment(new_data = train_data) %>%
+                  dplyr::select(.pred, total_points) %>%
+                  dplyr::mutate(.resid = .pred - total_points)
+
+#plot model predictions from tuned model versus actual outcomes
+#geom_abline plots a 45 degree line along which the results should fall
+ggplot2::ggplot(lasso_resid, aes(x = .pred, y = total_points)) +
+  geom_abline(slope = 1, intercept = 0, color = "red", lty = 2) +
+  geom_point() +
+  labs(title = "LASSO fit: Predicted vs. Actual Total Points",
+        x = "Actual Total Points",
+        y = "Predicted Total Points")
+
+#plot model with residuals
+#the geom_hline plots a straight horizontal line along which the results should fall
+ggplot2::ggplot(lasso_resid, aes(x = as.numeric(row.names(lasso_resid)), y = .resid))+
+  geom_hline(yintercept = 0, color = "red", lty = 2) +
+  geom_point() +
+  labs(title = "LASSO Fit: Residuals",
+        x = "Observation Number",
+        y = "Residual")
+
+#plot model fit vs residuals
+#the geom_hline plots a straight horizontal line along which the results fall
+ggplot2::ggplot(lasso_resid, aes(x = .pred, y = .resid))+
+  geom_hline(yintercept = 0, color = "red", lty = 2) +
+  geom_point() +
+  labs(title = "LASSO Fit: Residuals vs Fitted Total Points",
+        x = "Fitted Total Points",
+        y = "Residual")
+
+#print the 10 best performing hyperparameter sets
+lasso_res %>%
+  tune::show_best(n = 10) %>%
+  dplyr::select(rmse = mean, std_err, penalty) %>%
+  dplyr::mutate(rmse = round(rmse, 3),
+                std_err = round(std_err, 4),
+                `log penalty` = round(log(penalty), 3),
+                .keep = "unused")
+
+#print best model performance
+lasso_performance <- lasso_res %>% tune::show_best(n = 1)
+lasso_performance
+
+#compare model performance to null model and tree model
+lasso_RMSE <- lasso_res %>%
+                tune::show_best(n = 1) %>%
+                dplyr::transmute(
+                  rmse = round(mean, 3),
+                  SE = round(std_err, 4),
+                  model = "LASSO") %>%
+               dplyr::bind_rows(tree_RMSE)
+lasso_RMSE
+```
+
+In examining the results of the model, there is an improvement of the target metric (RMSE) under the LASSO model in comparison to the Decision Tree and Null models. However, the residual plots and observed vs fitted plots suggest the fit still isn't ideal. Time to try another model!
+
+<br>
+
+---
+
+<br>
+
+## Random Forest Model
+Most of the code for this section comes from the [TidyModels Tutorial Case Study](https://www.tidymodels.org/start/case-study/).
+
+<br>
+
+### 1. Model Specification
+```{r}
+#run parallels to determine number of cores
+cores <- parallel::detectCores() - 1
+cores
+
+cl <- makeCluster(cores)
+
+registerDoParallel(cl)
+
+#define the RF model
+RF_mod <-
+  parsnip::rand_forest(mtry = tune(),
+                       min_n = tune(),
+                       trees = tune()) %>%
+  parsnip::set_engine("ranger",
+                      importance = "permutation") %>%
+  parsnip::set_mode("regression")
+
+#use the recipe specified earlier (line 133)
+
+#check to make sure identified parameters will be tuned
+RF_mod %>% tune::parameters()
+```
+
+<br>
+
+### 2. Workflow Definition
+```{r}
+#define workflow for RF regression
+RF_wflow <- workflows::workflow() %>%
+               workflows::add_model(RF_mod) %>%
+               workflows::add_recipe(marbles_rec)
+```
+
+<br>
+
+### 3. Tuning Grid Specification
+```{r}
+#tuning grid specification
+RF_grid <- expand.grid(mtry = c(3, 4, 5, 6),
+                       min_n = c(40, 50, 60),
+                       trees = c(500,1000))
+```
+
+<br>
+
+### 4. Tuning Using Cross-Validation and the `tune_grid()` function
+```{r}
+#tune the model with previously specified cross-validation and RMSE as target metric
+RF_res <- RF_wflow %>%
+              tune::tune_grid(resamples = folds,
+                              grid = RF_grid,
+                              control = control_grid(verbose = TRUE, save_pred = TRUE),
+                              metrics = metric_set(rmse))
+
+#look at top 5 RF models
+top_RF_models <- RF_res %>%
+                    tune::show_best("rmse", n = 5)
+top_RF_models
+
+#default visualization
+RF_res %>% autoplot()
+#in future analyses, might be worth more tuning with a higher minimum node size
+```
+
+<br>
+
+### 5. Identify Best Model
+```{r}
+#select the RF model with the lowest rmse
+RF_lowest_rmse <- RF_res %>%
+                      tune::select_best("rmse")
+
+#finalize the workflow by using the selected RF model
+best_RF_wflow <- RF_wflow %>%
+                      tune::finalize_workflow(RF_lowest_rmse)
+best_RF_wflow
+
+#one last fit on the training data
+best_RF_fit <- best_RF_wflow %>%
+                    parsnip::fit(data = train_data)
+```
+
+<br>
+
+### 6. Model evaluation
+```{r}
+#extract model from final fit
+x_RF <- best_RF_fit$fit$fit$fit
+
+#plot most important predictors in the model
+vip::vip(x_RF, num_features = 20)
+
+#find predictions and intervals
+RF_resid <- best_RF_fit %>%
+                broom.mixed::augment(new_data = train_data) %>%
+                dplyr::select(.pred, total_points) %>%
+                dplyr::mutate(.resid = .pred - total_points)
+
+#plot model predictions from tuned model versus actual outcomes
+#geom_abline is a 45 degree line, along which the results should fall
+ggplot2::ggplot(RF_resid, aes(x = .pred, y = total_points)) +
+  geom_abline(slope = 1, intercept = 0, color = "red", lty = 2) +
+  geom_point() +
+  labs(title = "RF Fit: Actual vs. Predicted Total Points",
+        x = "Predicted Total Points",
+        y = "Actual Total Points")
+
+#plot model with residuals
+#the geom_hline plots a straight horizontal line along which the results should fall
+ggplot2::ggplot(RF_resid, aes(x = as.numeric(row.names(RF_resid)), y = .resid))+
+  geom_hline(yintercept = 0, color = "red", lty = 2) +
+  geom_point() +
+  labs(title = "RF Fit: Residuals",
+        x = "Observation Number",
+        y = "Residual")
+
+#plot model fit vs residuals
+#the geom_hline plots a straight horizontal line along which the results fall
+ggplot2::ggplot(RF_resid, aes(x = .pred, y = .resid))+
+  geom_hline(yintercept = 0, color = "red", lty = 2) +
+  geom_point() +
+  labs(title = "LASSO Fit: Residuals vs Fitted Total Points",
+        x = "Fitted Total Points",
+        y = "Residual")
+
+#print the 10 best performing hyperparameter sets
+RF_res %>%
+  tune::show_best(n = 10) %>%
+  dplyr::select(rmse = mean, std_err) %>%
+  dplyr::mutate(rmse = round(rmse, 3),
+                std_err = round(std_err, 4),
+                .keep = "unused")
+
+#print the best model
+RF_performance <- RF_res %>% tune::show_best(n = 1)
+RF_performance
+
+#compare model performance to null model (and other models)
+RF_RMSE <- RF_res %>%
+              tune::show_best(n = 1) %>%
+              dplyr::transmute(
+                rmse = round(mean, 3),
+                SE = round(std_err, 4),
+                model = "RF") %>%
+             dplyr::bind_rows(lasso_RMSE)
+RF_RMSE
+```
+
+In examining the results of the RF model within the context of RMSE, it does not perform better than the LASSO, but it has an approximately comparable performance to the decision tree model. By far, the most important variables are fastest_lap_count, current_rank, current_points, and points obtained during the race.
+
+---
+
+## Bagged Decision Tree Model
+
+<br>
+
+### 1. Model Specification
+```{r}
+#run parallels to determine number of cores
+cores <- parallel::detectCores() - 1
+cores
+
+cl <- makeCluster(cores)
+
+registerDoParallel(cl)
+
+#start over with random seed for bootstrapping
+#set random seed
+set.seed(20140102)
+
+#use bootstrap instead of CV
+data_bootstrap <- train_data %>%
+                    rsample::bootstraps(times = 10,
+                                        strata = total_points)
+
+#define model
+bag_tree_mod <- baguette::bag_tree(cost_complexity = tune(),
+                                   tree_depth = tune(),
+                                   min_n = tune()) %>%
+                parsnip::set_engine("rpart",
+                                    times = 10) %>%
+                parsnip::set_mode("regression")
+
+#create recipe that codes categorical variables as dummy variables
+BT_rec <- recipes::recipe(total_points ~ ., data = train_data) %>%
+          step_string2factor(all_nominal())
+```
+---
+
+### 2. Workflow Definition
+```{r}
+#define workflow for tree
+BT_wflow <- workflows::workflow() %>%
+               workflows::add_model(bag_tree_mod) %>%
+               workflows::add_recipe(BT_rec)
+```
+
+---
+
+### 3. Tuning Grid Specification
+```{r}
+#tuning grid specification
+tree_grid <- dials::grid_regular(cost_complexity(),
+                                 tree_depth(),
+                                 min_n(),
+                                 levels = 5)
+```
+
+---
+
+### 4. Tuning Using Cross-Validation and the `tune_grid()` function
+```{r}
+#tune the model with previously specified cross-validation and RMSE as target metric
+BT_res <- baguette::bag_tree(cost_complexity = tune(),
+                                   tree_depth = tune(),
+                                   min_n = tune()) %>%
+          parsnip::set_engine("rpart",
+                              times = 10) %>%
+          parsnip::set_mode("regression") %>%
+          tune::tune_grid(preprocessor = BT_rec,
+                          resamples = data_bootstrap,
+                          grid = tree_grid,
+                          metrics = metric_set(rmse))
+
+#collect metrics
+BT_res %>% workflowsets::collect_metrics()
+
+#default visualization
+BT_auto_plot <- BT_res %>% autoplot()
+BT_auto_plot
+
+#more detailed plot
+BT_det_plot <- BT_res %>%
+                    workflowsets::collect_metrics() %>%
+                    dplyr::mutate(tree_depth = factor(tree_depth)) %>%
+                    ggplot2::ggplot(aes(cost_complexity, mean, color = tree_depth)) +
+                             geom_line(size = 1.5, alpha = 0.6) +
+                             geom_point(size = 2) +
+                             facet_wrap(~ .metric, scales = "free", nrow = 2) +
+                             scale_x_log10(labels = scales::label_number()) +
+                             scale_color_viridis_d(option = "plasma", begin = 0.9, end = 0)
+BT_det_plot
+```
+
+---
+
+### 5. Identify Best Model
+```{r}
+#select the BT model with the lowest rmse
+BT_lowest_rmse <- BT_res %>%
+                        tune::select_best("rmse")
+
+#finalize the workflow by using the selected BT model
+best_BT_wflow <- BT_wflow %>%
+                      tune::finalize_workflow(BT_lowest_rmse)
+best_BT_wflow
+
+#one last fit on the training data
+best_BT_fit <- best_BT_wflow %>%
+                    parsnip::fit(data = train_data)
+```
+
+---
+
+### 6. Model evaluation
+```{r}
+#extract model from final fit
+x_BT <- best_BT_fit$fit$fit$fit
+
+#vip package doesn't support BT
+
+#find predictions and intervals
+BT_resid <- best_BT_fit %>%
+                  broom.mixed::augment(new_data = train_data) %>%
+                  dplyr::select(.pred, total_points) %>%
+                  dplyr::mutate(.resid = .pred - total_points)
+
+#plot model predictions from tuned model versus actual outcomes
+#geom_abline draws a 45 degree line, along which the results should fall
+BT_pred_act <- ggplot2::ggplot(BT_resid, aes(x = .pred, y = total_points)) +
+                        geom_abline(slope = 1, intercept = 0, color = "red", lty = 2) + 
+                        geom_point() +
+                        labs(title = "Bagged Tree Fit: Predicted vs. Actual Total Points",
+                              x = "Predicted Total Points)",
+                              y = "Actual Total Points")
+BT_pred_act
+
+#plot model with residuals
+#the geom_hline plots a straight horizontal line along which the results should fall
+BT_resids <- ggplot2::ggplot(BT_resid, aes(x = as.numeric(row.names(BT_resid)), y = .resid))+
+                      geom_hline(yintercept = 0, color = "red", lty = 2) +
+                      geom_point() +
+                      labs(title = "Bagged Tree Fit: Residuals",
+                            x = "Observation Number",
+                            y = "Residual")
+BT_resids
+
+#plot model fit vs residuals
+#the geom_hline plots a straight horizontal line along which the results fall
+BT_pred_resid <- ggplot2::ggplot(BT_resid, aes(x = .pred, y = .resid))+
+                          geom_hline(yintercept = 0, color = "red", lty = 2) +
+                          geom_point() +
+                          labs(title = "Bagged Tree Fit: Residuals vs Fitted Total Points",
+                                x = "Predicted Total Points",
+                                y = "Residual")
+BT_pred_resid
+
+#print model performance
+#print 10 best performing hyperparameter sets
+BT_res %>%
+  tune::show_best(n = 10) %>%
+  dplyr::select(rmse = mean, std_err, cost_complexity) %>%
+  dplyr::mutate(rmse = round(rmse, 3),
+                std_err = round(std_err, 4),
+                cost_complexity = scales::scientific(cost_complexity))
+
+#print the best model performance
+BT_performance <- BT_res %>% tune::show_best(n = 1)
+print(BT_performance)
+
+#compare model performance to null model
+BT_RMSE <- BT_res %>%
+                tune::show_best(n = 1) %>%
+                dplyr::transmute(
+                  rmse = round(mean, 3),
+                  SE = round(std_err, 4),
+                  model = "Bagged Tree") %>%
+               dplyr::bind_rows(RF_RMSE)
+BT_RMSE
+```
+
+---
+
+## Model Selection and Evaluation
+Based on the RMSE output above, the LASSO model has the lowest RMSE and therefore is the most appropriate model in this case. The RF and Tree models are virtually identical in their performance, but all three models are an improvement over the null model. It is worth noting that none of these models actually fit the data well - suggesting the predictor variables included in this dataset aren't all that useful in predicting the desired outcome (e.g. body temperature in suspected flu patients).
+```{r}
+#fit lasso model to training set but evaluate on the test data
+lasso_fit_test <- best_lasso_wflow %>%
+                    tune::last_fit(split = data_split)
+
+#compare test performance against training performance
+lasso_rmse_test <- collect_metrics(lasso_fit_test) %>%
+  dplyr::select(rmse = .estimate) %>%
+  dplyr::mutate(data = "test")
+
+lasso_comp <- lasso_RMSE %>%
+                  dplyr::filter(model == "LASSO") %>%
+                  dplyr::transmute(rmse, data = "train") %>%
+                  dplyr::bind_rows(lasso_rmse_test) %>%
+                  dplyr::slice(-3) #don't know why the third row shows up
+lasso_comp
+#RMSEs are essentially identical --> what we want (suggests we might've avoided overfitting)
+
+#find predictions and intervals
+lasso_resid_fit <- lasso_fit_test %>%
+                  broom.mixed::augment() %>%
+                  dplyr::select(.pred, total_points) %>%
+                  dplyr::mutate(.resid = .pred - total_points)
+
+#plot model predictions from tuned model versus actual outcomes
+#geom_hline plots a 45 degree line, along which the results should fall
+ggplot2::ggplot(lasso_resid_fit, aes(x = .pred, y = total_points)) +
+  geom_abline(slope = 1, intercept = 0, color = "red", lty = 2) +
+  geom_point() +
+  labs(title = "LASSO fit: Predicted vs. Actual Total Points",
+        x = "Predicted Total Points",
+        y = "Actual Total Points")
+
+#plot model with residuals
+#the geom_hline plots a straight horizontal line along which the results should fall
+ggplot2::ggplot(lasso_resid_fit, aes(x = as.numeric(row.names(lasso_resid_fit)), y = .resid))+
+  geom_hline(yintercept = 0, color = "red", lty = 2) +
+  geom_point() +
+  labs(title = "Lasso Test Fit: Residuals",
+        x = "Observation Number",
+        y = "Residual")
+
+#plot model fit vs residuals
+#the geom_hline plots a straight horizontal line along which the results fall
+ggplot2::ggplot(lasso_resid_fit, aes(x = .pred, y = .resid))+
+  geom_hline(yintercept = 0, color = "red", lty = 2) +
+  geom_point() +
+  labs(title = "LASSO Test Fit: Residuals vs Fitted Total Points",
+        x = "Fitted Total Points",
+        y = "Residual")
+```
+
+---
+
+## Overall Conclusion
+The LASSO model fits the data best. The model using both training and testing data performs better than the other possible models. There's certainly plenty of opportunities for further exploration or tuning. There's an underlying time-trend series component to this data set, so cross-validation may not be the most appropriate. I would be interested to come back to this analysis after better understanding time series.
